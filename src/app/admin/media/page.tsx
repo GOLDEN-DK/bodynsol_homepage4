@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import MediaUploader from '@/components/admin/MediaUploader';
+import Image from 'next/image';
 
 interface Media {
   id: string;
@@ -208,7 +209,13 @@ export default function AdminMedia() {
                       <div className="flex items-center">
                         <div className="h-16 w-16 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
                           {media.type === 'image' ? (
-                            <img src={media.url} alt={media.title || '이미지'} className="h-full w-full object-cover" />
+                            <Image 
+                              src={media.url} 
+                              alt={media.title || '이미지'} 
+                              className="h-full w-full object-cover" 
+                              width={64}
+                              height={64}
+                            />
                           ) : (
                             <div className="h-full w-full flex items-center justify-center text-gray-500">
                               <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
