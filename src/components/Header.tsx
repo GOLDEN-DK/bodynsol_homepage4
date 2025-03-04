@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 
@@ -18,6 +19,13 @@ export default function Header() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0 flex items-center">
+              <Image 
+                src="/logo.png" 
+                alt="바디앤솔 로고" 
+                width={40} 
+                height={40} 
+                className="mr-2"
+              />
               <span className="text-xl font-bold text-blue-600">바디앤솔</span>
             </Link>
           </div>
