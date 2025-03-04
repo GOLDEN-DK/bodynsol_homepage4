@@ -87,8 +87,17 @@ export default function AdminMedia() {
   }
 
   // 미디어 업로드 성공 처리
-  const handleUploadSuccess = (media: any) => {
-    setMediaList([media, ...mediaList]);
+  const handleUploadSuccess = (media: {
+    id: string;
+    url: string;
+    type: string;
+    width: number;
+    height: number;
+    size: number;
+    mimeType: string;
+    title?: string;
+  }) => {
+    setMediaList([media as Media, ...mediaList]);
     setShowUploader(false);
   };
 

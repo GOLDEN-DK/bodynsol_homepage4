@@ -69,8 +69,8 @@ export async function POST(request: NextRequest) {
     const fileUrl = `/uploads/${mediaType}/${fileName}`;
 
     // 파일 메타데이터 (이미지 크기 등)
-    let width = 0;
-    let height = 0;
+    const width = 0;
+    const height = 0;
 
     // TODO: 이미지/비디오 크기 측정 로직 추가
     // 실제 구현에서는 이미지 처리 라이브러리(예: sharp)를 사용하여 크기를 측정

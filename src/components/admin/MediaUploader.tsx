@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 
 interface MediaUploaderProps {
   onUploadSuccess: (media: {
@@ -54,7 +55,7 @@ export default function MediaUploader({ onUploadSuccess }: MediaUploaderProps) {
 
     // 이미지 크기 확인
     if (fileType.startsWith('image/')) {
-      const img = new Image();
+      const img = new window.Image();
       img.onload = () => {
         setDimensions({
           width: img.width,
@@ -143,10 +144,13 @@ export default function MediaUploader({ onUploadSuccess }: MediaUploaderProps) {
           </label>
           <div className="border rounded-md p-2">
             {file?.type.startsWith('image/') ? (
-              <img
-                src={preview}
+              <Image
+                src={preview || ''}
                 alt="미리보기"
                 className="max-h-48 max-w-full mx-auto"
+                width={200}
+                height={200}
+                style={{ objectFit: 'contain' }}
               />
             ) : (
               <video

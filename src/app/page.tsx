@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
@@ -171,7 +170,7 @@ export default function Home() {
                 </div>
               </div>
               <p className="text-gray-800 mb-4">
-                "필라테스 강사 양성 과정을 통해 전문적인 지식과 실무 경험을 쌓을 수 있었습니다. 강사진의 꼼꼼한 지도 덕분에 자신감을 갖고 현장에서 활동할 수 있게 되었습니다."
+                &ldquo;필라테스 강사 양성 과정을 통해 전문적인 지식과 실무 경험을 쌓을 수 있었습니다. 강사진의 꼼꼼한 지도 덕분에 자신감을 갖고 현장에서 활동할 수 있게 되었습니다.&rdquo;
               </p>
               <p className="text-sm text-gray-700">필라테스 강사 양성 과정 수료</p>
             </div>
@@ -190,7 +189,7 @@ export default function Home() {
                 </div>
               </div>
               <p className="text-gray-800 mb-4">
-                "통증 교정 전문가 과정은 제 물리치료사 경력에 큰 도움이 되었습니다. 이론과 실습이 균형 있게 구성되어 있어 실제 환자 치료에 바로 적용할 수 있었습니다."
+                &ldquo;통증 교정 전문가 과정은 제 물리치료사 경력에 큰 도움이 되었습니다. 이론과 실습이 균형 있게 구성되어 있어 실제 환자 치료에 바로 적용할 수 있었습니다.&rdquo;
               </p>
               <p className="text-sm text-gray-700">통증 교정 전문가 과정 수료</p>
             </div>
@@ -209,7 +208,7 @@ export default function Home() {
                 </div>
               </div>
               <p className="text-gray-800 mb-4">
-                "재활 운동 지도사 과정을 통해 다양한 케이스에 대응할 수 있는 능력을 키울 수 있었습니다. 특히 실제 사례 분석과 맞춤형 프로그램 설계 부분이 매우 유익했습니다."
+                &ldquo;재활 운동 지도사 과정을 통해 다양한 케이스에 대응할 수 있는 능력을 키울 수 있었습니다. 특히 실제 사례 분석과 맞춤형 프로그램 설계 부분이 매우 유익했습니다.&rdquo;
               </p>
               <p className="text-sm text-gray-700">재활 운동 지도사 과정 수료</p>
             </div>
