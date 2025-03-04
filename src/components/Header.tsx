@@ -10,7 +10,7 @@ export default function Header() {
   const pathname = usePathname();
 
   const isActive = (path: string) => {
-    return pathname === path ? 'text-blue-600 font-bold' : 'text-gray-700 hover:text-blue-600';
+    return pathname === path ? 'text-[#b5b67d] font-bold' : 'text-gray-700 hover:text-[#b5b67d]';
   };
 
   return (
@@ -22,32 +22,32 @@ export default function Header() {
               <Image 
                 src="/logo.png" 
                 alt="바디앤솔 로고" 
-                width={40} 
-                height={40} 
-                className="mr-2"
+                width={60} 
+                height={60} 
+                className="mr-3"
               />
-              <span className="text-xl font-bold text-blue-600">바디앤솔</span>
+              <span className="text-xl font-bold text-[#8a7e71]">바디앤솔</span>
             </Link>
           </div>
 
           {/* 데스크탑 메뉴 */}
           <nav className="hidden md:ml-6 md:flex md:space-x-8">
-            <Link href="/" className={`inline-flex items-center px-1 pt-1 border-b-2 ${pathname === '/' ? 'border-blue-500' : 'border-transparent'} ${isActive('/')}`}>
+            <Link href="/" className={`inline-flex items-center px-1 pt-1 border-b-2 ${pathname === '/' ? 'border-[#b5b67d]' : 'border-transparent'} ${isActive('/')}`}>
               홈
             </Link>
-            <Link href="/center" className={`inline-flex items-center px-1 pt-1 border-b-2 ${pathname === '/center' ? 'border-blue-500' : 'border-transparent'} ${isActive('/center')}`}>
+            <Link href="/center" className={`inline-flex items-center px-1 pt-1 border-b-2 ${pathname === '/center' ? 'border-[#b5b67d]' : 'border-transparent'} ${isActive('/center')}`}>
               센터
             </Link>
-            <Link href="/academy" className={`inline-flex items-center px-1 pt-1 border-b-2 ${pathname === '/academy' ? 'border-blue-500' : 'border-transparent'} ${isActive('/academy')}`}>
+            <Link href="/academy" className={`inline-flex items-center px-1 pt-1 border-b-2 ${pathname === '/academy' ? 'border-[#b5b67d]' : 'border-transparent'} ${isActive('/academy')}`}>
               아카데미
             </Link>
-            <Link href="/courses" className={`inline-flex items-center px-1 pt-1 border-b-2 ${pathname === '/courses' ? 'border-blue-500' : 'border-transparent'} ${isActive('/courses')}`}>
+            <Link href="/courses" className={`inline-flex items-center px-1 pt-1 border-b-2 ${pathname === '/courses' ? 'border-[#b5b67d]' : 'border-transparent'} ${isActive('/courses')}`}>
               교육과정
             </Link>
-            <Link href="/community" className={`inline-flex items-center px-1 pt-1 border-b-2 ${pathname === '/community' ? 'border-blue-500' : 'border-transparent'} ${isActive('/community')}`}>
+            <Link href="/community" className={`inline-flex items-center px-1 pt-1 border-b-2 ${pathname === '/community' ? 'border-[#b5b67d]' : 'border-transparent'} ${isActive('/community')}`}>
               커뮤니티
             </Link>
-            <Link href="/contact" className={`inline-flex items-center px-1 pt-1 border-b-2 ${pathname === '/contact' ? 'border-blue-500' : 'border-transparent'} ${isActive('/contact')}`}>
+            <Link href="/contact" className={`inline-flex items-center px-1 pt-1 border-b-2 ${pathname === '/contact' ? 'border-[#b5b67d]' : 'border-transparent'} ${isActive('/contact')}`}>
               상담/문의
             </Link>
           </nav>
@@ -91,22 +91,22 @@ export default function Header() {
       {/* 모바일 메뉴 */}
       <div className={`${isMenuOpen ? 'block' : 'hidden'} md:hidden`}>
         <div className="pt-2 pb-3 space-y-1">
-          <Link href="/" className={`block pl-3 pr-4 py-2 border-l-4 ${pathname === '/' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'}`}>
+          <Link href="/" className={`block pl-3 pr-4 py-2 border-l-4 ${pathname === '/' ? 'border-[#b5b67d] bg-[#f5f6e4] text-[#8a7e71]' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-[#8a7e71]'}`}>
             홈
           </Link>
-          <Link href="/center" className={`block pl-3 pr-4 py-2 border-l-4 ${pathname === '/center' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'}`}>
+          <Link href="/center" className={`block pl-3 pr-4 py-2 border-l-4 ${pathname === '/center' ? 'border-[#b5b67d] bg-[#f5f6e4] text-[#8a7e71]' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-[#8a7e71]'}`}>
             센터
           </Link>
-          <Link href="/academy" className={`block pl-3 pr-4 py-2 border-l-4 ${pathname === '/academy' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'}`}>
+          <Link href="/academy" className={`block pl-3 pr-4 py-2 border-l-4 ${pathname === '/academy' ? 'border-[#b5b67d] bg-[#f5f6e4] text-[#8a7e71]' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-[#8a7e71]'}`}>
             아카데미
           </Link>
-          <Link href="/courses" className={`block pl-3 pr-4 py-2 border-l-4 ${pathname === '/courses' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'}`}>
+          <Link href="/courses" className={`block pl-3 pr-4 py-2 border-l-4 ${pathname === '/courses' ? 'border-[#b5b67d] bg-[#f5f6e4] text-[#8a7e71]' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-[#8a7e71]'}`}>
             교육과정
           </Link>
-          <Link href="/community" className={`block pl-3 pr-4 py-2 border-l-4 ${pathname === '/community' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'}`}>
+          <Link href="/community" className={`block pl-3 pr-4 py-2 border-l-4 ${pathname === '/community' ? 'border-[#b5b67d] bg-[#f5f6e4] text-[#8a7e71]' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-[#8a7e71]'}`}>
             커뮤니티
           </Link>
-          <Link href="/contact" className={`block pl-3 pr-4 py-2 border-l-4 ${pathname === '/contact' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'}`}>
+          <Link href="/contact" className={`block pl-3 pr-4 py-2 border-l-4 ${pathname === '/contact' ? 'border-[#b5b67d] bg-[#f5f6e4] text-[#8a7e71]' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-[#8a7e71]'}`}>
             상담/문의
           </Link>
         </div>
