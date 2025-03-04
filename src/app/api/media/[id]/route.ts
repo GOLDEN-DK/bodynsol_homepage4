@@ -5,8 +5,7 @@ import { unlink } from 'fs/promises';
 import { join } from 'path';
 
 export async function DELETE(
-  request: NextRequest,
-  context: { params: { id: string } }
+  request: NextRequest
 ) {
   try {
     // 세션 확인 (인증된 관리자만 접근 가능)
@@ -18,7 +17,10 @@ export async function DELETE(
       );
     }
 
-    const { id } = context.params;
+    // URL에서 ID 추출
+    const url = new URL(request.url);
+    const pathSegments = url.pathname.split('/');
+    const id = pathSegments[pathSegments.length - 1];
 
     // 미디어 정보 조회
     const media = await prisma.media.findUnique({
