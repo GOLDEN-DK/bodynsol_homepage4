@@ -6,7 +6,7 @@ import { join } from 'path';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     // 세션 확인 (인증된 관리자만 접근 가능)
@@ -18,7 +18,7 @@ export async function DELETE(
       );
     }
 
-    const { id } = params;
+    const { id } = context.params;
 
     // 미디어 정보 조회
     const media = await prisma.media.findUnique({
