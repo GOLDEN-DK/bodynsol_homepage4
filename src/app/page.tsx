@@ -1,7 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 
 // 스크롤 애니메이션을 위한 컴포넌트
 function AnimatedSection({ children, className }: { children: React.ReactNode, className?: string }) {
@@ -22,12 +24,44 @@ function AnimatedSection({ children, className }: { children: React.ReactNode, c
 }
 
 export default function Home() {
+  const [heroVideo, setHeroVideo] = useState<string | null>(null);
+
+  // 히어로 영상 가져오기
+  useEffect(() => {
+    const fetchHeroVideo = async () => {
+      try {
+        const response = await fetch('/api/settings/hero-video');
+        if (response.ok) {
+          const data = await response.json();
+          setHeroVideo(data.videoUrl);
+        }
+      } catch (error) {
+        console.error('히어로 영상을 불러오는데 실패했습니다:', error);
+      }
+    };
+
+    fetchHeroVideo();
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* 히어로 배너 섹션 */}
-      <section className="relative h-[80vh] bg-gray-900 text-white">
+      <section className="relative h-[80vh] bg-gray-900 text-white overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <div className="w-full h-full bg-gradient-to-r from-[#8a7e71] to-[#b5b67d]"></div>
+          {heroVideo ? (
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+            >
+              <source src={heroVideo} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          ) : (
+            <div className="w-full h-full bg-gradient-to-r from-[#8a7e71] to-[#b5b67d]"></div>
+          )}
           <div className="absolute inset-0 bg-black bg-opacity-50"></div>
         </div>
         <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 text-center">
