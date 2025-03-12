@@ -36,6 +36,8 @@ model Banner {
   link          String?
   isActive      Boolean   @default(true)
   order         Int       @default(0)
+  mediaType     String    @default("image") // 'image', 'gif', 'video' 중 하나
+  transitionTime Int      @default(5) // 배너 전환 시간(초)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
