@@ -4,10 +4,13 @@ import { prisma } from "@/lib/prisma";
 import { unlink } from "fs/promises";
 import { join } from "path";
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+type Params = {
+  params: {
+    id: string;
+  };
+};
+
+export async function DELETE(request: NextRequest, params: Params) {
   try {
     // 세션 확인 (인증된 관리자만 접근 가능)
     const session = await getServerSession();
@@ -19,7 +22,7 @@ export async function DELETE(
     }
 
     // URL에서 ID 추출
-    const id = params.id;
+    const id = params.params.id;
 
     // 미디어 정보 조회
     const media = await prisma.media.findUnique({
