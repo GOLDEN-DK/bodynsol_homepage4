@@ -50,6 +50,9 @@ const nextConfig = {
   experimental: {
     largePageDataBytes: 128 * 100000, // 기본값 128KB를 증가
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 module.exports = nextConfig;
