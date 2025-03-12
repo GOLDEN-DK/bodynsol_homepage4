@@ -10,9 +10,16 @@ const prisma = new PrismaClient();
 async function main() {
   try {
     // 환경 변수에서 관리자 계정 정보 가져오기
-    const email = process.env.ADMIN_EMAIL || "admin@bodynsol.co.kr";
-    const password = process.env.ADMIN_PASSWORD || "bodynsol1225!";
+    const email = process.env.ADMIN_EMAIL;
+    const password = process.env.ADMIN_PASSWORD;
     const name = process.env.ADMIN_NAME || "관리자";
+
+    if (!email || !password) {
+      console.log(
+        "환경 변수에 ADMIN_EMAIL 또는 ADMIN_PASSWORD가 설정되지 않았습니다."
+      );
+      return;
+    }
 
     // 비밀번호 해싱
     const hashedPassword = await bcrypt.hash(password, 10);

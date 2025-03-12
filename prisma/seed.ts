@@ -1,13 +1,24 @@
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcrypt");
+const dotenv = require("dotenv");
+
+// 환경 변수 로드
+dotenv.config();
 
 const prisma = new PrismaClient();
 
 async function main() {
   // 환경 변수에서 관리자 계정 정보 가져오기
-  const adminEmail = process.env.ADMIN_EMAIL || "admin@bodynsol.co.kr";
-  const adminPassword = process.env.ADMIN_PASSWORD || "bodynsol1225!";
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
   const adminName = process.env.ADMIN_NAME || "관리자";
+
+  if (!adminEmail || !adminPassword) {
+    console.log(
+      "환경 변수에 ADMIN_EMAIL 또는 ADMIN_PASSWORD가 설정되지 않았습니다."
+    );
+    return;
+  }
 
   // 기존 관리자 계정이 있는지 확인
   const existingAdmin = await prisma.user.findUnique({
