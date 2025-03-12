@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 // GET 요청 처리 - 배너 목록 가져오기
@@ -21,7 +21,7 @@ export async function GET() {
 }
 
 // POST 요청 처리 - 새 배너 추가
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
 

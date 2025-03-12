@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
@@ -66,7 +66,7 @@ export async function GET() {
 }
 
 // POST 요청 처리 - 히어로 영상 URL 설정하기
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     // 간단한 인증 체크 (실제 프로덕션에서는 더 강력한 인증이 필요합니다)
     // 여기서는 간단히 구현합니다
