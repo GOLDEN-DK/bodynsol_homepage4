@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "create-admin": "node scripts/create-admin.js",
-    "update-admin-password": "node scripts/update-admin-password.js"
+    "update-admin-password": "node scripts/update-admin-password.js",
+    "prisma:seed": "npx ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",
