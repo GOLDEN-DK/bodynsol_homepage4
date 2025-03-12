@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-type Params = {
-  params: {
-    id: string;
-  };
-};
-
 // GET 요청 처리 - 특정 배너 가져오기
-export async function GET(request: NextRequest, params: Params) {
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
   try {
-    const id = params.params.id;
+    const id = params.id;
 
     const banner = await prisma.banner.findUnique({
       where: { id },
@@ -34,9 +31,12 @@ export async function GET(request: NextRequest, params: Params) {
 }
 
 // PATCH 요청 처리 - 배너 업데이트
-export async function PATCH(request: NextRequest, params: Params) {
+export async function PATCH(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
   try {
-    const id = params.params.id;
+    const id = params.id;
     const data = await request.json();
 
     // 배너 존재 여부 확인
@@ -68,9 +68,12 @@ export async function PATCH(request: NextRequest, params: Params) {
 }
 
 // DELETE 요청 처리 - 배너 삭제
-export async function DELETE(request: NextRequest, params: Params) {
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
   try {
-    const id = params.params.id;
+    const id = params.id;
 
     // 배너 존재 여부 확인
     const existingBanner = await prisma.banner.findUnique({
