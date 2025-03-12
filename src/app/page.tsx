@@ -32,7 +32,7 @@ function AnimatedSection({
 
 export default function Home() {
   const [heroVideo, setHeroVideo] = useState<string | null>(null);
-  const [useBannerSlider, setUseBannerSlider] = useState(true); // 배너 슬라이더 사용 여부
+  const [useBannerSlider] = useState(true); // 배너 슬라이더 사용 여부
 
   // 히어로 영상 가져오기
   useEffect(() => {
@@ -51,7 +51,7 @@ export default function Home() {
     if (!useBannerSlider) {
       fetchHeroVideo();
     }
-  }, [useBannerSlider]);
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -386,9 +386,9 @@ export default function Home() {
                 </div>
               </div>
               <p className="text-gray-800">
-                "바디앤솔 아카데미에서 배운 지식과 기술은 제 경력에 큰 도움이
-                되었습니다. 전문적인 강사진과 체계적인 커리큘럼 덕분에 자신감을
-                갖고 필라테스 강사로 활동할 수 있게 되었습니다."
+                &quot;바디앤솔 아카데미에서 배운 지식과 기술은 제 경력에 큰
+                도움이 되었습니다. 전문적인 강사진과 체계적인 커리큘럼 덕분에
+                자신감을 갖고 필라테스 강사로 활동할 수 있게 되었습니다.&quot;
               </p>
             </AnimatedSection>
 
@@ -445,9 +445,9 @@ export default function Home() {
                 </div>
               </div>
               <p className="text-gray-800">
-                "통증 교정 전문가 과정은 제가 기대했던 것보다 훨씬 더 많은 것을
-                배울 수 있었습니다. 실습 위주의 교육과 개별 피드백 덕분에 실제
-                현장에서 자신있게 적용할 수 있게 되었습니다."
+                &quot;통증 교정 전문가 과정은 제가 기대했던 것보다 훨씬 더 많은
+                것을 배울 수 있었습니다. 실습 위주의 교육과 개별 피드백 덕분에
+                실제 현장에서 자신있게 적용할 수 있게 되었습니다.&quot;
               </p>
             </AnimatedSection>
 
@@ -504,9 +504,9 @@ export default function Home() {
                 </div>
               </div>
               <p className="text-gray-800">
-                "바디앤솔 아카데미의 재활 운동 지도사 과정은 정말 탁월했습니다.
-                이론과 실습이 균형 있게 구성되어 있어 실제 현장에서 바로 적용할
-                수 있는 지식을 얻을 수 있었습니다."
+                &quot;바디앤솔 아카데미의 재활 운동 지도사 과정은 정말
+                탁월했습니다. 이론과 실습이 균형 있게 구성되어 있어 실제
+                현장에서 바로 적용할 수 있는 지식을 얻을 수 있었습니다.&quot;
               </p>
             </AnimatedSection>
           </div>

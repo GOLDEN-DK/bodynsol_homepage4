@@ -22,7 +22,7 @@ interface Banner {
 }
 
 export default function AdminBanners() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const [banners, setBanners] = useState<Banner[]>([]);
   const [isLoading, setIsLoading] = useState(true);
