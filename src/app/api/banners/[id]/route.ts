@@ -4,10 +4,10 @@ import { prisma } from "@/lib/prisma";
 // GET 요청 처리 - 특정 배너 가져오기
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = context.params;
+    const { id } = params;
 
     const banner = await prisma.banner.findUnique({
       where: { id },
@@ -33,10 +33,10 @@ export async function GET(
 // PATCH 요청 처리 - 배너 업데이트
 export async function PATCH(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = context.params;
+    const { id } = params;
     const data = await request.json();
 
     // 배너 존재 여부 확인
@@ -70,10 +70,10 @@ export async function PATCH(
 // DELETE 요청 처리 - 배너 삭제
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = context.params;
+    const { id } = params;
 
     // 배너 존재 여부 확인
     const existingBanner = await prisma.banner.findUnique({
