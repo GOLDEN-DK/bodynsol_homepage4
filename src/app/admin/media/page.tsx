@@ -7,6 +7,9 @@ import Link from "next/link";
 import MediaUploader from "@/components/admin/MediaUploader";
 import Image from "next/image";
 
+// 동적 렌더링 설정
+export const dynamic = "force-dynamic";
+
 interface Media {
   id: string;
   type: string;
