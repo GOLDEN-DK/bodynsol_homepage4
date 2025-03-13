@@ -9,15 +9,25 @@ import { FiUsers, FiBook, FiSettings, FiCalendar } from "react-icons/fi";
 export const dynamic = "force-dynamic";
 // 서버 사이드 렌더링 비활성화
 export const unstable_noStore = true;
+// Edge 런타임 사용
+export const runtime = "edge";
 
 export default function AdminDashboard() {
-  const { data: session } = useSession();
   const [stats, setStats] = useState({
     totalCourses: 0,
     activeCourses: 0,
     totalUsers: 0,
     totalEnrollments: 0,
   });
+  const [mounted, setMounted] = useState(false);
+
+  // 클라이언트 사이드에서만 useSession 사용
+  const { data: session } = useSession();
+
+  // 컴포넌트가 마운트되었는지 확인
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // 통계 데이터 가져오기
   useEffect(() => {
@@ -40,8 +50,21 @@ export default function AdminDashboard() {
       }
     };
 
-    fetchStats();
-  }, []);
+    if (mounted) {
+      fetchStats();
+    }
+  }, [mounted]);
+
+  if (!mounted) {
+    return (
+      <div className="p-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="h-64 bg-gray-200 rounded mb-6"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">

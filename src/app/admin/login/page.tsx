@@ -1,20 +1,38 @@
 "use client";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 // 동적 렌더링 설정
 export const dynamic = "force-dynamic";
 // 서버 사이드 렌더링 비활성화
 export const unstable_noStore = true;
+// Edge 런타임 사용
+export const runtime = "edge";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
+
+  // 클라이언트 사이드에서만 useSession 사용
+  const { status } = useSession();
+
+  // 컴포넌트가 마운트되었는지 확인
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // 이미 로그인한 경우 대시보드로 리디렉션
+  useEffect(() => {
+    if (mounted && status === "authenticated") {
+      router.push("/admin/dashboard");
+    }
+  }, [status, router, mounted]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +58,17 @@ export default function AdminLogin() {
       setLoading(false);
     }
   };
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="animate-pulse max-w-md w-full space-y-8">
+          <div className="h-8 bg-gray-200 rounded w-1/2 mx-auto"></div>
+          <div className="h-64 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">

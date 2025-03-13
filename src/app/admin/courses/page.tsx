@@ -78,10 +78,10 @@ export default function AdminCourses() {
       }
     };
 
-    if (session?.user?.role === "admin") {
+    if (mounted && session?.user?.role === "admin") {
       fetchCourses();
     }
-  }, [session]);
+  }, [session, mounted]);
 
   // 과정 삭제 핸들러
   const handleDeleteCourse = async (id: string) => {

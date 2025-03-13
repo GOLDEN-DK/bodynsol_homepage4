@@ -11,6 +11,8 @@ import Image from "next/image";
 export const dynamic = "force-dynamic";
 // 서버 사이드 렌더링 비활성화
 export const unstable_noStore = true;
+// Edge 런타임 사용
+export const runtime = "edge";
 
 interface Media {
   id: string;
@@ -26,7 +28,6 @@ interface Media {
 }
 
 export default function AdminMedia() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [mediaList, setMediaList] = useState<Media[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,6 +35,15 @@ export default function AdminMedia() {
   const [showUploader, setShowUploader] = useState(false);
   const [heroVideo, setHeroVideo] = useState<string | null>(null);
   const [isSettingHeroVideo, setIsSettingHeroVideo] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // 클라이언트 사이드에서만 useSession 사용
+  const { data: session, status } = useSession();
+
+  // 컴포넌트가 마운트되었는지 확인
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // 미디어 목록 불러오기
   const fetchMedia = async () => {
@@ -94,16 +104,18 @@ export default function AdminMedia() {
   };
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/admin/login");
-    } else if (status === "authenticated") {
-      fetchMedia();
-      fetchHeroVideoSetting();
+    if (mounted) {
+      if (status === "unauthenticated") {
+        router.push("/admin/login");
+      } else if (status === "authenticated") {
+        fetchMedia();
+        fetchHeroVideoSetting();
+      }
     }
-  }, [status, router]);
+  }, [status, router, mounted]);
 
   // 로딩 중이거나 인증되지 않은 경우 처리
-  if (status === "loading") {
+  if (!mounted || status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -119,13 +131,13 @@ export default function AdminMedia() {
     );
   }
 
-  if (status === "unauthenticated" || !session) {
+  if (mounted && (status === "unauthenticated" || !session)) {
     router.push("/admin/login");
     return null;
   }
 
   // 관리자가 아닌 경우 접근 제한
-  if (session.user.role !== "admin") {
+  if (mounted && session?.user?.role !== "admin") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

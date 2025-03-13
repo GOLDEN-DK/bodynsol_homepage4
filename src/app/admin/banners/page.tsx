@@ -10,6 +10,8 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 // 서버 사이드 렌더링 비활성화
 export const unstable_noStore = true;
+// Edge 런타임 사용
+export const runtime = "edge";
 
 interface Banner {
   id: string;
@@ -27,7 +29,6 @@ interface Banner {
 }
 
 export default function AdminBanners() {
-  const { status } = useSession();
   const router = useRouter();
   const [banners, setBanners] = useState<Banner[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,6 +52,15 @@ export default function AdminBanners() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [useDirectUrl, setUseDirectUrl] = useState(false);
   const [showUrlPreview, setShowUrlPreview] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // 클라이언트 사이드에서만 useSession 사용
+  const { status } = useSession();
+
+  // 컴포넌트가 마운트되었는지 확인
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // 배너 목록 불러오기
   const fetchBanners = async () => {
@@ -76,12 +86,14 @@ export default function AdminBanners() {
   };
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/admin/login");
-    } else if (status === "authenticated") {
-      fetchBanners();
+    if (mounted) {
+      if (status === "unauthenticated") {
+        router.push("/admin/login");
+      } else if (status === "authenticated") {
+        fetchBanners();
+      }
     }
-  }, [status, router]);
+  }, [status, router, mounted]);
 
   // 이미지 선택 핸들러
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {

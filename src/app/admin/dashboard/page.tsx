@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -8,13 +9,23 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 // 서버 사이드 렌더링 비활성화
 export const unstable_noStore = true;
+// Edge 런타임 사용
+export const runtime = "edge";
 
 export default function AdminDashboard() {
-  const { data: session, status } = useSession();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  // 클라이언트 사이드에서만 useSession 사용
+  const { data: session, status } = useSession();
+
+  // 컴포넌트가 마운트되었는지 확인
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // 로딩 중이거나 인증되지 않은 경우 처리
-  if (status === "loading") {
+  if (!mounted) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
@@ -30,13 +41,29 @@ export default function AdminDashboard() {
     );
   }
 
-  if (status === "unauthenticated" || !session) {
+  if (mounted && status === "loading") {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div
+            className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full text-blue-600 border-t-transparent"
+            role="status"
+          >
+            <span className="sr-only">로딩 중...</span>
+          </div>
+          <p className="mt-2">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (mounted && (status === "unauthenticated" || !session)) {
     router.push("/admin/login");
     return null;
   }
 
   // 관리자가 아닌 경우 접근 제한
-  if (session.user.role !== "admin") {
+  if (mounted && session?.user?.role !== "admin") {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
