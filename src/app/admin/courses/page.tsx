@@ -10,6 +10,9 @@ import { formatDate } from "@/lib/utils";
 // 동적 렌더링 설정
 export const dynamic = "force-dynamic";
 
+// 클라이언트 사이드에서만 렌더링
+export const runtime = "edge";
+
 // 과정 인터페이스 정의
 interface Course {
   id: string;
@@ -28,20 +31,30 @@ interface Course {
 }
 
 export default function AdminCourses() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // 클라이언트 사이드에서만 useSession 사용
+  const { data: session, status } = useSession();
+
+  // 컴포넌트가 마운트되었는지 확인
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // 세션 체크
   useEffect(() => {
-    if (status === "unauthenticated") {
-      signIn();
-    } else if (session?.user?.role !== "admin") {
-      router.push("/");
+    if (mounted) {
+      if (status === "unauthenticated") {
+        signIn();
+      } else if (session?.user?.role !== "admin") {
+        router.push("/");
+      }
     }
-  }, [session, status, router]);
+  }, [session, status, router, mounted]);
 
   // 과정 목록 가져오기
   useEffect(() => {

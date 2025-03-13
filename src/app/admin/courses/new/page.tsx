@@ -10,6 +10,9 @@ import dynamicImport from "next/dynamic";
 // next/dynamic과 이름이 충돌하지 않도록 별도로 선언
 export const dynamic = "force-dynamic";
 
+// 클라이언트 사이드에서만 렌더링
+export const runtime = "edge";
+
 // 클라이언트 사이드에서만 로드되도록 에디터를 동적으로 임포트
 const RichTextEditor = dynamicImport(
   () => import("@/components/editor/RichTextEditor"),
@@ -26,11 +29,19 @@ const PAYMENT_METHODS = [
 ];
 
 export default function NewCourse() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // 클라이언트 사이드에서만 useSession 사용
+  const { data: session, status } = useSession();
+
+  // 컴포넌트가 마운트되었는지 확인
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // 과정 정보 상태
   const [courseData, setCourseData] = useState({
