@@ -10,6 +10,8 @@ import {
   FiBook,
   FiMenu,
   FiX,
+  FiImage,
+  FiFile,
 } from "react-icons/fi";
 
 interface MenuItem {
@@ -37,6 +39,10 @@ export default function AdminSidebar({ menuItems }: AdminSidebarProps) {
         return <FiSettings className="w-5 h-5" />;
       case "school":
         return <FiBook className="w-5 h-5" />;
+      case "image":
+        return <FiImage className="w-5 h-5" />;
+      case "file":
+        return <FiFile className="w-5 h-5" />;
       default:
         return <FiHome className="w-5 h-5" />;
     }

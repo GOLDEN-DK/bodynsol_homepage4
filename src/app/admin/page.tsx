@@ -3,7 +3,14 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { FiUsers, FiBook, FiSettings, FiCalendar } from "react-icons/fi";
+import {
+  FiUsers,
+  FiBook,
+  FiSettings,
+  FiCalendar,
+  FiImage,
+  FiFile,
+} from "react-icons/fi";
 
 // 동적 렌더링 설정
 export const dynamic = "force-dynamic";
@@ -171,6 +178,20 @@ export default function AdminDashboard() {
       <div className="bg-white rounded-lg shadow p-6 mb-8">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">빠른 액션</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Link
+            href="/admin/banners"
+            className="flex items-center p-4 bg-indigo-50 rounded-lg hover:bg-indigo-100"
+          >
+            <FiImage className="h-6 w-6 text-indigo-600" />
+            <span className="ml-3 text-indigo-600 font-medium">배너 관리</span>
+          </Link>
+          <Link
+            href="/admin/media"
+            className="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100"
+          >
+            <FiFile className="h-6 w-6 text-green-600" />
+            <span className="ml-3 text-green-600 font-medium">미디어 관리</span>
+          </Link>
           <Link
             href="/admin/courses/new"
             className="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100"
