@@ -9,7 +9,6 @@ import {
   FiSettings,
   FiCalendar,
   FiImage,
-  FiFile,
 } from "react-icons/fi";
 
 // 동적 렌더링 설정
@@ -184,13 +183,6 @@ export default function AdminDashboard() {
           >
             <FiImage className="h-6 w-6 text-indigo-600" />
             <span className="ml-3 text-indigo-600 font-medium">배너 관리</span>
-          </Link>
-          <Link
-            href="/admin/media"
-            className="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100"
-          >
-            <FiFile className="h-6 w-6 text-green-600" />
-            <span className="ml-3 text-green-600 font-medium">미디어 관리</span>
           </Link>
           <Link
             href="/admin/courses/new"
