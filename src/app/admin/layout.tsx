@@ -6,6 +6,9 @@ import { useRouter } from "next/navigation";
 import AdminSidebar from "@/components/admin/Sidebar";
 import AdminHeader from "@/components/admin/Header";
 
+// 동적 렌더링 설정
+export const dynamic = "force-dynamic";
+
 const adminMenuItems = [
   { name: "대시보드", href: "/admin", icon: "dashboard" },
   { name: "과정 관리", href: "/admin/courses", icon: "school" },

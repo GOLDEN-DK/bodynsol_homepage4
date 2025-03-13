@@ -7,6 +7,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { formatDate } from "@/lib/utils";
 
+// 동적 렌더링 설정
+export const dynamic = "force-dynamic";
+
 // 과정 인터페이스 정의
 interface Course {
   id: string;

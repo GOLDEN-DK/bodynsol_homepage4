@@ -5,6 +5,9 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { FiUsers, FiBook, FiSettings, FiCalendar } from "react-icons/fi";
 
+// 동적 렌더링 설정
+export const dynamic = "force-dynamic";
+
 export default function AdminDashboard() {
   const { data: session } = useSession();
   const [stats, setStats] = useState({

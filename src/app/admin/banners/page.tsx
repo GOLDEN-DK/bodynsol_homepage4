@@ -6,6 +6,9 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 
+// 동적 렌더링 설정
+export const dynamic = "force-dynamic";
+
 interface Banner {
   id: string;
   title: string;
