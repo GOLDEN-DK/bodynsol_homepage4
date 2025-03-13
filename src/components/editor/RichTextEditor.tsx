@@ -1,16 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
-import "react-quill/dist/quill.snow.css";
-
-// 클라이언트 사이드에서만 로드되도록 Quill 에디터를 동적으로 임포트
-const ReactQuill = dynamic(() => import("react-quill"), {
-  ssr: false,
-  loading: () => (
-    <div className="h-64 bg-gray-100 animate-pulse rounded-md"></div>
-  ),
-});
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Image from "@tiptap/extension-image";
+import Link from "@tiptap/extension-link";
+import Placeholder from "@tiptap/extension-placeholder";
 
 interface RichTextEditorProps {
   content: string;
@@ -25,71 +20,178 @@ const RichTextEditor = ({
   placeholder = "내용을 입력하세요...",
   readOnly = false,
 }: RichTextEditorProps) => {
-  // 클라이언트 사이드에서만 렌더링하기 위한 상태
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Quill 에디터 모듈 설정
-  const modules = {
-    toolbar: [
-      [{ header: [1, 2, 3, 4, 5, 6, false] }],
-      ["bold", "italic", "underline", "strike"],
-      [{ list: "ordered" }, { list: "bullet" }],
-      [{ indent: "-1" }, { indent: "+1" }],
-      [{ align: [] }],
-      ["link", "image"],
-      ["clean"],
+  // TipTap 에디터 초기화
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Image,
+      Link.configure({
+        openOnClick: false,
+      }),
+      Placeholder.configure({
+        placeholder,
+      }),
     ],
-    clipboard: {
-      matchVisual: false,
+    content,
+    editable: !readOnly,
+    onUpdate: ({ editor }) => {
+      onChange(editor.getHTML());
     },
-  };
+  });
 
-  // Quill 에디터 포맷 설정
-  const formats = [
-    "header",
-    "bold",
-    "italic",
-    "underline",
-    "strike",
-    "list",
-    "bullet",
-    "indent",
-    "align",
-    "link",
-    "image",
-  ];
+  // 에디터 내용 업데이트
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content);
+    }
+  }, [content, editor]);
 
-  // 서버 사이드 렌더링 시 빈 div 반환
-  if (!mounted) {
-    return <div className="h-64 bg-gray-100 rounded-md"></div>;
+  // 툴바 버튼 스타일
+  const toolbarButtonClass = "p-2 rounded hover:bg-gray-100 focus:outline-none";
+  const activeButtonClass = "bg-gray-200";
+
+  if (!editor) {
+    return <div className="h-64 bg-gray-100 animate-pulse rounded-md"></div>;
   }
 
   return (
-    <div className="rich-text-editor">
-      <ReactQuill
-        theme="snow"
-        value={content}
-        onChange={onChange}
-        modules={modules}
-        formats={formats}
-        placeholder={placeholder}
-        readOnly={readOnly}
-        className="min-h-[200px]"
+    <div className="rich-text-editor border border-gray-300 rounded-md overflow-hidden">
+      {!readOnly && (
+        <div className="flex flex-wrap items-center gap-1 p-2 border-b border-gray-300 bg-gray-50">
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            className={`${toolbarButtonClass} ${
+              editor.isActive("bold") ? activeButtonClass : ""
+            }`}
+            title="굵게"
+          >
+            <span className="font-bold">B</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            className={`${toolbarButtonClass} ${
+              editor.isActive("italic") ? activeButtonClass : ""
+            }`}
+            title="기울임"
+          >
+            <span className="italic">I</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+            className={`${toolbarButtonClass} ${
+              editor.isActive("strike") ? activeButtonClass : ""
+            }`}
+            title="취소선"
+          >
+            <span className="line-through">S</span>
+          </button>
+          <span className="mx-1 text-gray-300">|</span>
+          <button
+            type="button"
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 1 }).run()
+            }
+            className={`${toolbarButtonClass} ${
+              editor.isActive("heading", { level: 1 }) ? activeButtonClass : ""
+            }`}
+            title="제목 1"
+          >
+            <span className="font-bold">H1</span>
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 2 }).run()
+            }
+            className={`${toolbarButtonClass} ${
+              editor.isActive("heading", { level: 2 }) ? activeButtonClass : ""
+            }`}
+            title="제목 2"
+          >
+            <span className="font-bold">H2</span>
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 3 }).run()
+            }
+            className={`${toolbarButtonClass} ${
+              editor.isActive("heading", { level: 3 }) ? activeButtonClass : ""
+            }`}
+            title="제목 3"
+          >
+            <span className="font-bold">H3</span>
+          </button>
+          <span className="mx-1 text-gray-300">|</span>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            className={`${toolbarButtonClass} ${
+              editor.isActive("bulletList") ? activeButtonClass : ""
+            }`}
+            title="글머리 기호"
+          >
+            <span>•</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            className={`${toolbarButtonClass} ${
+              editor.isActive("orderedList") ? activeButtonClass : ""
+            }`}
+            title="번호 매기기"
+          >
+            <span>1.</span>
+          </button>
+          <span className="mx-1 text-gray-300">|</span>
+          <button
+            type="button"
+            onClick={() => {
+              const url = window.prompt("URL을 입력하세요:");
+              if (url) {
+                editor.chain().focus().setLink({ href: url }).run();
+              }
+            }}
+            className={`${toolbarButtonClass} ${
+              editor.isActive("link") ? activeButtonClass : ""
+            }`}
+            title="링크"
+          >
+            <span>🔗</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const url = window.prompt("이미지 URL을 입력하세요:");
+              if (url) {
+                editor.chain().focus().setImage({ src: url }).run();
+              }
+            }}
+            className={toolbarButtonClass}
+            title="이미지"
+          >
+            <span>🖼️</span>
+          </button>
+        </div>
+      )}
+      <EditorContent
+        editor={editor}
+        className="prose max-w-none p-4 min-h-[200px] max-h-[500px] overflow-y-auto"
       />
       <style jsx global>{`
-        .rich-text-editor .ql-container {
+        .ProseMirror {
           min-height: 200px;
-          max-height: 500px;
-          overflow-y: auto;
-          font-size: 16px;
-          font-family: inherit;
+          outline: none;
         }
-        .rich-text-editor .ql-editor {
-          min-height: 200px;
+        .ProseMirror p.is-editor-empty:first-child::before {
+          content: attr(data-placeholder);
+          float: left;
+          color: #adb5bd;
+          pointer-events: none;
+          height: 0;
         }
       `}</style>
     </div>
