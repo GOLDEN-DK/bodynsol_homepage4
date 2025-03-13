@@ -63,6 +63,12 @@ const nextConfig = {
   staticPageGenerationTimeout: 1000,
   // 모든 페이지를 서버 사이드 렌더링으로 처리
   trailingSlash: false,
+  // 정적 생성 완전히 비활성화
+  distDir: ".next",
+  // 모든 페이지를 동적으로 렌더링
+  env: {
+    NEXT_PUBLIC_FORCE_DYNAMIC: "true",
+  },
 };
 
 module.exports = nextConfig;
