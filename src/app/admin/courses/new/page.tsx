@@ -4,10 +4,14 @@ import { useState, useEffect } from "react";
 import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import dynamic from "next/dynamic";
+import dynamicImport from "next/dynamic";
+
+// 동적 렌더링 설정
+// next/dynamic과 이름이 충돌하지 않도록 별도로 선언
+export const dynamic = "force-dynamic";
 
 // 클라이언트 사이드에서만 로드되도록 에디터를 동적으로 임포트
-const RichTextEditor = dynamic(
+const RichTextEditor = dynamicImport(
   () => import("@/components/editor/RichTextEditor"),
   {
     ssr: false,
