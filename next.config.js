@@ -56,6 +56,9 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true, // 타입 체크 오류 무시
   },
+  // 모든 페이지에 대해 동적 렌더링 설정
+  output: "standalone",
+  reactStrictMode: true,
 };
 
 module.exports = nextConfig;
