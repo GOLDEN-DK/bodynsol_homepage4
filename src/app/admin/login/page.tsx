@@ -1,37 +1,40 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useState } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+
+// 동적 렌더링 설정
+export const dynamic = "force-dynamic";
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
-      const result = await signIn('credentials', {
+      const result = await signIn("credentials", {
         redirect: false,
         email,
         password,
       });
 
       if (result?.error) {
-        setError('이메일 또는 비밀번호가 올바르지 않습니다.');
+        setError("이메일 또는 비밀번호가 올바르지 않습니다.");
         setLoading(false);
         return;
       }
 
-      router.push('/admin/dashboard');
+      router.push("/admin/dashboard");
     } catch {
-      setError('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
+      setError("로그인 중 오류가 발생했습니다. 다시 시도해주세요.");
       setLoading(false);
     }
   };
@@ -93,11 +96,11 @@ export default function AdminLogin() {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? '로그인 중...' : '로그인'}
+              {loading ? "로그인 중..." : "로그인"}
             </button>
           </div>
         </form>
       </div>
     </div>
   );
-} 
+}
