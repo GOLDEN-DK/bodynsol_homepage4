@@ -59,6 +59,10 @@ const nextConfig = {
   // 모든 페이지에 대해 동적 렌더링 설정
   output: "standalone",
   reactStrictMode: true,
+  // 정적 생성 비활성화
+  staticPageGenerationTimeout: 1000,
+  // 모든 페이지를 서버 사이드 렌더링으로 처리
+  trailingSlash: false,
 };
 
 module.exports = nextConfig;
