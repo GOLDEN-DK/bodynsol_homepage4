@@ -7,6 +7,12 @@ import { FiUsers, FiBook, FiSettings, FiCalendar } from "react-icons/fi";
 
 // 동적 렌더링 설정
 export const dynamic = "force-dynamic";
+// 정적 생성 비활성화
+export const generateStaticParams = () => {
+  return [];
+};
+// 서버 사이드 렌더링 비활성화
+export const unstable_noStore = true;
 
 export default function AdminDashboard() {
   const { data: session } = useSession();

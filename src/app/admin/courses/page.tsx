@@ -13,6 +13,14 @@ export const dynamic = "force-dynamic";
 // 클라이언트 사이드에서만 렌더링
 export const runtime = "edge";
 
+// 정적 생성 비활성화
+export const generateStaticParams = () => {
+  return [];
+};
+
+// 서버 사이드 렌더링 비활성화
+export const unstable_noStore = true;
+
 // 과정 인터페이스 정의
 interface Course {
   id: string;
