@@ -44,19 +44,28 @@ model Banner {
 
 // 교육 과정 모델
 model Course {
-  id            String    @id @default(cuid())
-  title         String
-  description   String
-  thumbnailUrl  String
-  thumbnailWidth Int
-  thumbnailHeight Int
-  category      String
-  curriculum    String?   @db.Text
-  schedule      String?
-  price         Int?
-  isActive      Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                 String    @id @default(cuid())
+  title              String
+  slug               String    @unique
+  description        String
+  content            String    @db.Text
+  thumbnailUrl       String
+  thumbnailWidth     Int       @default(800)
+  thumbnailHeight    Int       @default(600)
+  category           String
+  instructor         String
+  instructorInfo     String?   @db.Text
+  instructorImageUrl String?
+  schedule           String?
+  duration           String?
+  location           String?
+  maxStudents        Int?
+  price              Int?
+  discountPrice      Int?
+  paymentMethods     String[]  @default([])
+  isActive           Boolean   @default(true)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 }
 
 // 이벤트 모델
