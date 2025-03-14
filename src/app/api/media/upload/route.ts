@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { writeFile } from "fs/promises";
-import { join } from "path";
-import { mkdir } from "fs/promises";
 import { v4 as uuidv4 } from "uuid";
+import { v2 as cloudinary } from "cloudinary";
+
+// Cloudinary 설정
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,50 +47,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 파일 저장 경로 설정
-    let uploadDir;
+    // 파일 폴더 설정
+    let folder;
     if (isVideo) {
-      uploadDir = join(process.cwd(), "public", "uploads", "videos");
+      folder = "videos";
     } else if (isGif) {
-      uploadDir = join(process.cwd(), "public", "uploads", "gifs");
+      folder = "gifs";
     } else {
-      uploadDir = join(process.cwd(), "public", "uploads", "images");
+      folder = "images";
     }
 
-    // 디렉토리가 없으면 생성
-    try {
-      await mkdir(uploadDir, { recursive: true });
-    } catch (error) {
-      console.error("디렉토리 생성 오류:", error);
-    }
+    // 파일을 Base64로 변환
+    const fileBuffer = await file.arrayBuffer();
+    const base64Data = Buffer.from(fileBuffer).toString("base64");
+    const fileData = `data:${fileType};base64,${base64Data}`;
 
-    // 파일명 생성 (고유 ID + 원본 확장자)
-    const fileExtension = file.name.split(".").pop();
-    const fileName = `${uuidv4()}.${fileExtension}`;
-    const filePath = join(uploadDir, fileName);
+    // Cloudinary에 업로드
+    const uploadResult = await new Promise((resolve, reject) => {
+      const uploadOptions = {
+        folder: `bodynsol/${folder}`,
+        resource_type: isVideo ? ("video" as const) : ("image" as const),
+        public_id: uuidv4(),
+      };
 
-    // 파일 저장
-    try {
-      const fileBuffer = await file.arrayBuffer();
-      await writeFile(filePath, Buffer.from(fileBuffer));
-      console.log(`파일 저장 성공: ${filePath}`);
-    } catch (error) {
-      console.error("파일 저장 오류:", error);
-      return NextResponse.json(
-        { error: "파일 저장 중 오류가 발생했습니다." },
-        { status: 500 }
-      );
-    }
+      cloudinary.uploader.upload(fileData, uploadOptions, (error, result) => {
+        if (error) {
+          console.error("Cloudinary 업로드 오류:", error);
+          reject(error);
+        } else {
+          resolve(result);
+        }
+      });
+    });
 
-    // 파일 URL 생성
-    let fileUrl;
-    if (isVideo) {
-      fileUrl = `/uploads/videos/${fileName}`;
-    } else if (isGif) {
-      fileUrl = `/uploads/gifs/${fileName}`;
-    } else {
-      fileUrl = `/uploads/images/${fileName}`;
-    }
+    // 타입 단언
+    const result = uploadResult as any;
 
     // 미디어 타입 결정
     let type;
@@ -97,18 +93,13 @@ export async function POST(request: NextRequest) {
       type = "image";
     }
 
-    // 간단한 이미지 메타데이터 설정
-    // 실제 이미지 크기 측정은 생략하고 기본값 사용
-    const width = 1920; // 기본 너비
-    const height = 600; // 기본 높이
-
     // 데이터베이스에 미디어 정보 저장
     const media = await prisma.media.create({
       data: {
         type,
-        url: fileUrl,
-        width,
-        height,
+        url: result.secure_url,
+        width: result.width || 1920,
+        height: result.height || 600,
         size: file.size,
         mimeType: fileType,
         title: (formData.get("title") as string) || null,
