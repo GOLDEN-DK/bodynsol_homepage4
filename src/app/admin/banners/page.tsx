@@ -135,6 +135,13 @@ export default function AdminBanners() {
     if (type === "checkbox") {
       const checked = (e.target as HTMLInputElement).checked;
       setNewBanner((prev) => ({ ...prev, [name]: checked }));
+    } else if (name === "order") {
+      // order 필드는 숫자로 변환
+      const numValue = parseInt(value, 10);
+      setNewBanner((prev) => ({
+        ...prev,
+        [name]: isNaN(numValue) ? 0 : numValue,
+      }));
     } else {
       setNewBanner((prev) => ({ ...prev, [name]: value }));
     }
@@ -339,9 +346,11 @@ export default function AdminBanners() {
     if (type === "checkbox") {
       const checked = (e.target as HTMLInputElement).checked;
       setEditingBanner((prev) => (prev ? { ...prev, [name]: checked } : null));
-    } else if (type === "number") {
+    } else if (type === "number" || name === "order") {
+      // 숫자 필드는 정수로 변환
+      const numValue = parseInt(value, 10);
       setEditingBanner((prev) =>
-        prev ? { ...prev, [name]: parseInt(value) || 0 } : null
+        prev ? { ...prev, [name]: isNaN(numValue) ? 0 : numValue } : null
       );
     } else {
       setEditingBanner((prev) => (prev ? { ...prev, [name]: value } : null));

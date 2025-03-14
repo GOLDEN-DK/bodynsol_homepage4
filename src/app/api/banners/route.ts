@@ -33,6 +33,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // order 값이 문자열인 경우 정수로 변환
+    const order =
+      typeof data.order === "string"
+        ? parseInt(data.order, 10)
+        : data.order || 0;
+
     // 배너 생성
     const banner = await prisma.banner.create({
       data: {
@@ -43,7 +49,7 @@ export async function POST(request: NextRequest) {
         imageHeight: data.imageHeight || 0,
         link: data.link || null,
         isActive: data.isActive !== undefined ? data.isActive : true,
-        order: data.order || 0,
+        order: order,
         mediaType: data.mediaType || "image", // 'image', 'gif', 'video' 중 하나
       },
     });
