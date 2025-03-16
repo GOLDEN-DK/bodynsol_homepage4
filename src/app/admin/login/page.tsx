@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 // 동적 렌더링 설정
 export const dynamic = "force-dynamic";
@@ -20,7 +21,7 @@ export default function AdminLogin() {
   const router = useRouter();
 
   // 클라이언트 사이드에서만 useSession 사용
-  const { status } = useSession();
+  const { data: session, status } = useSession();
 
   // 컴포넌트가 마운트되었는지 확인
   useEffect(() => {
@@ -30,9 +31,14 @@ export default function AdminLogin() {
   // 이미 로그인한 경우 대시보드로 리디렉션
   useEffect(() => {
     if (mounted && status === "authenticated") {
-      router.push("/admin/dashboard");
+      if (session?.user?.role === "admin") {
+        router.push("/admin/dashboard");
+      } else {
+        // 관리자가 아닌 경우 홈페이지로 리디렉션
+        router.push("/");
+      }
     }
-  }, [status, router, mounted]);
+  }, [status, router, mounted, session]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,8 +58,9 @@ export default function AdminLogin() {
         return;
       }
 
-      router.push("/admin/dashboard");
-    } catch {
+      // 로그인 성공 후 세션 정보를 가져오기 위해 페이지 새로고침
+      window.location.href = "/admin/dashboard";
+    } catch (error) {
       setError("로그인 중 오류가 발생했습니다. 다시 시도해주세요.");
       setLoading(false);
     }
@@ -73,7 +80,15 @@ export default function AdminLogin() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        <div>
+        <div className="text-center">
+          <div className="mx-auto w-32 h-32 relative mb-4">
+            <Image
+              src="/logo.png"
+              alt="바디앤솔 로고"
+              fill
+              style={{ objectFit: "contain" }}
+            />
+          </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             관리자 로그인
           </h2>

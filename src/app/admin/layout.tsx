@@ -2,7 +2,7 @@
 
 import { ReactNode } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import AdminSidebar from "@/components/admin/Sidebar";
 import AdminHeader from "@/components/admin/Header";
 
@@ -20,6 +20,10 @@ const adminMenuItems = [
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
+
+  // 로그인 페이지인 경우 인증 검사를 건너뜁니다
+  const isLoginPage = pathname === "/admin/login";
 
   // 로딩 중이면 로딩 UI 표시
   if (status === "loading") {
@@ -30,10 +34,18 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  // 인증되지 않았거나 관리자가 아니면 접근 불가
-  if (status === "unauthenticated" || session?.user?.role !== "admin") {
-    router.push("/");
+  // 로그인 페이지가 아니고, 인증되지 않았거나 관리자가 아니면 접근 불가
+  if (
+    !isLoginPage &&
+    (status === "unauthenticated" || session?.user?.role !== "admin")
+  ) {
+    router.push("/admin/login");
     return null;
+  }
+
+  // 로그인 페이지인 경우 사이드바 없이 컨텐츠만 표시
+  if (isLoginPage) {
+    return <div className="min-h-screen bg-gray-100">{children}</div>;
   }
 
   return (
