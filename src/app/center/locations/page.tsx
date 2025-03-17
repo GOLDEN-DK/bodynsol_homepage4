@@ -1,0 +1,526 @@
+"use client";
+
+import { useState } from "react";
+import Image from "next/image";
+import { motion } from "framer-motion";
+
+// 지점 정보 데이터
+const directStores = [
+  {
+    id: 1,
+    name: "강남 본점",
+    description:
+      "바디앤솔의 플래그십 스토어로, 최고급 시설과 전문 테라피스트가 함께합니다. VIP 룸과 프라이빗 세션을 제공하며, 도심 속 휴식 공간을 경험하실 수 있습니다.",
+    address: "서울특별시 강남구 테헤란로 123 바디앤솔빌딩 5층",
+    phone: "02-1234-5678",
+    hours: "평일 10:00 - 21:00 / 주말 10:00 - 18:00",
+    image: "/images/locations/gangnam.jpg",
+    mapUrl: "https://map.kakao.com",
+    features: ["프리미엄 시설", "전문 테라피스트", "주차 가능", "VIP 룸"],
+    sns: {
+      homepage: "https://bodynsoul.co.kr/gangnam",
+      blog: "https://blog.naver.com/bodynsoul_gangnam",
+      instagram: "https://instagram.com/bodynsoul_gangnam",
+    },
+  },
+  {
+    id: 2,
+    name: "홍대 직영점",
+    description:
+      "트렌디한 홍대 중심에 위치한 직영점으로, 젊은 감각의 인테리어와 다양한 프로그램을 제공합니다. 커플 프로그램과 그룹 세션이 인기 있는 지점입니다.",
+    address: "서울특별시 마포구 와우산로 123 바디앤솔 3층",
+    phone: "02-2345-6789",
+    hours: "평일 10:00 - 21:00 / 주말 10:00 - 18:00",
+    image: "/images/locations/hongdae.jpg",
+    mapUrl: "https://map.kakao.com",
+    features: ["트렌디한 인테리어", "커플 프로그램", "주차 가능"],
+    sns: {
+      homepage: "https://bodynsoul.co.kr/hongdae",
+      blog: "https://blog.naver.com/bodynsoul_hongdae",
+      instagram: "https://instagram.com/bodynsoul_hongdae",
+    },
+  },
+];
+
+const franchiseStores = [
+  {
+    id: 3,
+    name: "분당점",
+    description:
+      "경기도 분당 지역 최초의 바디앤솔 가맹점으로, 넓은 주차 공간과 가족 친화적인 환경을 제공합니다. 키즈존을 운영하여 아이와 함께 방문하시는 고객님들께 편의를 제공합니다.",
+    address: "경기도 성남시 분당구 정자동 123 바디앤솔 2층",
+    phone: "031-345-6789",
+    hours: "평일 10:00 - 21:00 / 주말 10:00 - 18:00",
+    image: "/images/locations/bundang.jpg",
+    mapUrl: "https://map.kakao.com",
+    features: ["넓은 주차공간", "가족 프로그램", "키즈존"],
+    sns: {
+      homepage: "https://bodynsoul.co.kr/bundang",
+      blog: "https://blog.naver.com/bodynsoul_bundang",
+      instagram: "https://instagram.com/bodynsoul_bundang",
+    },
+  },
+  {
+    id: 4,
+    name: "부산 해운대점",
+    description:
+      "해운대 바닷가와 인접한 위치에서 오션뷰를 감상하며 힐링할 수 있는 프리미엄 가맹점입니다. 특별한 해양 테라피 프로그램을 운영하며 휴양지에서의 특별한 경험을 제공합니다.",
+    address: "부산광역시 해운대구 해운대해변로 123 오션타워 8층",
+    phone: "051-789-1234",
+    hours: "평일 09:00 - 20:00 / 주말 10:00 - 19:00",
+    image: "/images/locations/haeundae.jpg",
+    mapUrl: "https://map.kakao.com",
+    features: ["오션뷰", "해양 테라피", "프리미엄 라운지"],
+    sns: {
+      homepage: "https://bodynsoul.co.kr/haeundae",
+      blog: "https://blog.naver.com/bodynsoul_haeundae",
+      instagram: "https://instagram.com/bodynsoul_haeundae",
+    },
+  },
+];
+
+export default function LocationsPage() {
+  const [storeType, setStoreType] = useState("direct");
+  const [selectedStore, setSelectedStore] = useState(directStores[0]);
+
+  const handleStoreTypeChange = (type: "direct" | "franchise") => {
+    setStoreType(type);
+    if (type === "direct") {
+      setSelectedStore(directStores[0]);
+    } else {
+      setSelectedStore(franchiseStores[0]);
+    }
+  };
+
+  const currentStores = storeType === "direct" ? directStores : franchiseStores;
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-black">
+      <div className="text-center mb-12">
+        <h1 className="text-3xl font-bold text-[#b5b67d] mb-4">지점 안내</h1>
+        <div className="w-20 h-1 bg-[#b5b67d] mx-auto"></div>
+        <p className="mt-6 text-[#f5f6e4] max-w-3xl mx-auto">
+          바디앤솔의 각 지점은 고객님께 최상의 서비스를 제공하기 위해 최적의
+          환경을 갖추고 있습니다. 가까운 지점을 방문하셔서 바디앤솔만의 특별한
+          경험을 만나보세요.
+        </p>
+      </div>
+
+      {/* 지점 유형 선택 탭 */}
+      <div className="flex justify-center mb-10">
+        <div className="inline-flex rounded-md shadow-sm bg-[#1a1a1a] p-1">
+          <button
+            onClick={() => handleStoreTypeChange("direct")}
+            className={`px-8 py-3 rounded-md text-sm font-medium transition-all duration-300 ${
+              storeType === "direct"
+                ? "bg-[#b5b67d] text-black shadow-lg"
+                : "text-[#f5f6e4] hover:bg-[#2a2a2a]"
+            }`}
+          >
+            직영점
+          </button>
+          <button
+            onClick={() => handleStoreTypeChange("franchise")}
+            className={`px-8 py-3 rounded-md text-sm font-medium transition-all duration-300 ${
+              storeType === "franchise"
+                ? "bg-[#b5b67d] text-black shadow-lg"
+                : "text-[#f5f6e4] hover:bg-[#2a2a2a]"
+            }`}
+          >
+            가맹점
+          </button>
+        </div>
+      </div>
+
+      {/* 지점 선택 버튼 */}
+      <div className="mb-10">
+        <div className="flex flex-wrap justify-center gap-4">
+          {currentStores.map((store) => (
+            <button
+              key={store.id}
+              onClick={() => setSelectedStore(store)}
+              className={`px-6 py-3 rounded-full text-sm font-medium transition-all duration-300 ${
+                selectedStore.id === store.id
+                  ? "bg-[#b5b67d] text-black shadow-md"
+                  : "bg-[#1a1a1a] text-[#f5f6e4] hover:bg-[#2a2a2a]"
+              }`}
+            >
+              {store.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 선택된 지점 상세 정보 */}
+      <motion.div
+        key={selectedStore.id}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-[#1a1a1a] rounded-lg shadow-xl overflow-hidden mb-16"
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-2">
+          <div className="relative h-80 lg:h-auto">
+            <Image
+              src={selectedStore.image}
+              alt={`${selectedStore.name} 이미지`}
+              fill
+              style={{ objectFit: "cover" }}
+              className="brightness-90"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+            <div className="absolute bottom-0 left-0 p-6">
+              <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-[#b5b67d] text-black mb-2">
+                {storeType === "direct" ? "직영점" : "가맹점"}
+              </span>
+              <h2 className="text-3xl font-bold text-white">
+                {selectedStore.name}
+              </h2>
+            </div>
+          </div>
+
+          <div className="p-8">
+            <p className="text-[#f5f6e4] mb-6 leading-relaxed">
+              {selectedStore.description}
+            </p>
+
+            <div className="space-y-5">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 mt-1">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 text-[#b5b67d]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-[#b5b67d]">주소</h3>
+                  <p className="text-[#f5f6e4]">{selectedStore.address}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start">
+                <div className="flex-shrink-0 mt-1">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 text-[#b5b67d]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-[#b5b67d]">연락처</h3>
+                  <p className="text-[#f5f6e4]">{selectedStore.phone}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start">
+                <div className="flex-shrink-0 mt-1">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 text-[#b5b67d]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-[#b5b67d]">
+                    영업시간
+                  </h3>
+                  <p className="text-[#f5f6e4]">{selectedStore.hours}</p>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-medium text-[#b5b67d] mb-2">
+                  특징
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {selectedStore.features.map((feature, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#2a2a2a] text-[#f5f6e4] border border-[#3a3a3a]"
+                    >
+                      {feature}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-medium text-[#b5b67d] mb-2">SNS</h3>
+                <div className="flex space-x-4">
+                  <a
+                    href={selectedStore.sns.homepage}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#f5f6e4] hover:text-[#b5b67d] transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"
+                      />
+                    </svg>
+                  </a>
+                  <a
+                    href={selectedStore.sns.blog}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#f5f6e4] hover:text-[#b5b67d] transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15"
+                      />
+                    </svg>
+                  </a>
+                  <a
+                    href={selectedStore.sns.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#f5f6e4] hover:text-[#b5b67d] transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37zm1.5-4.87h.01M6.5 19.5h11a3 3 0 003-3v-11a3 3 0 00-3-3h-11a3 3 0 00-3 3z"
+                      />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <a
+                  href={selectedStore.mapUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-black bg-[#b5b67d] hover:bg-[#a5a66d] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#b5b67d] transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                  지도에서 보기
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* 지점 방문 안내 */}
+      <div className="bg-[#1a1a1a] p-8 rounded-lg shadow-lg">
+        <h2 className="text-2xl font-semibold text-[#b5b67d] mb-8 text-center">
+          지점 방문 안내
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <motion.div
+            className="bg-[#2a2a2a] p-6 rounded-lg shadow-md border-l-4 border-[#b5b67d]"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <div className="flex justify-center mb-4">
+              <div className="w-12 h-12 rounded-full bg-[#3a3a3a] flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-[#b5b67d]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <h3 className="text-lg font-medium text-[#b5b67d] mb-3 text-center">
+              사전 예약
+            </h3>
+            <p className="text-[#f5f6e4] text-center">
+              원활한 서비스를 위해 방문 전 전화 또는 홈페이지를 통해 사전 예약을
+              권장합니다.
+            </p>
+          </motion.div>
+
+          <motion.div
+            className="bg-[#2a2a2a] p-6 rounded-lg shadow-md border-l-4 border-[#b5b67d]"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <div className="flex justify-center mb-4">
+              <div className="w-12 h-12 rounded-full bg-[#3a3a3a] flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-[#b5b67d]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <h3 className="text-lg font-medium text-[#b5b67d] mb-3 text-center">
+              결제 방법
+            </h3>
+            <p className="text-[#f5f6e4] text-center">
+              현금, 신용카드, 모바일 페이 등 다양한 결제 방법을 지원합니다.
+            </p>
+          </motion.div>
+
+          <motion.div
+            className="bg-[#2a2a2a] p-6 rounded-lg shadow-md border-l-4 border-[#b5b67d]"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <div className="flex justify-center mb-4">
+              <div className="w-12 h-12 rounded-full bg-[#3a3a3a] flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-[#b5b67d]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <h3 className="text-lg font-medium text-[#b5b67d] mb-3 text-center">
+              복장 안내
+            </h3>
+            <p className="text-[#f5f6e4] text-center">
+              편안한 운동복을 준비해 오시면 됩니다. 필요시 대여 서비스도 이용
+              가능합니다.
+            </p>
+          </motion.div>
+
+          <motion.div
+            className="bg-[#2a2a2a] p-6 rounded-lg shadow-md border-l-4 border-[#b5b67d]"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <div className="flex justify-center mb-4">
+              <div className="w-12 h-12 rounded-full bg-[#3a3a3a] flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-[#b5b67d]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <h3 className="text-lg font-medium text-[#b5b67d] mb-3 text-center">
+              상담 문의
+            </h3>
+            <p className="text-[#f5f6e4] text-center">
+              프로그램 및 서비스에 관한 상담은 각 지점으로 문의해 주시기
+              바랍니다.
+            </p>
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  );
+}
