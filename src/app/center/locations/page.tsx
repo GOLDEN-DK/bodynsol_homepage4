@@ -53,7 +53,7 @@ const franchiseStores = [
     hours: "평일 09:00 - 23:00 / 주말 08:00 - 18:00",
     image: "/images/locations/bundang.jpg",
     mapUrl: "https://map.kakao.com",
-    features: ["넓은 주차공간", "가족 프로그램", "키즈존"],
+    features: ["넓은 주차공간", "다양한 프로그램", "프리미엄 시설"],
     sns: {
       homepage: "https://bodynsol.info",
       blog: " https://blog.naver.com/dreambodynsol_cn",
