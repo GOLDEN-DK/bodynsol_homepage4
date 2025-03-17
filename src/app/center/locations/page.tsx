@@ -8,27 +8,27 @@ import { motion } from "framer-motion";
 const directStores = [
   {
     id: 1,
-    name: "강남 본점",
+    name: "대전 만년 본점",
     description:
       "바디앤솔의 플래그십 스토어로, 최고급 시설과 전문 테라피스트가 함께합니다. VIP 룸과 프라이빗 세션을 제공하며, 도심 속 휴식 공간을 경험하실 수 있습니다.",
-    address: "서울특별시 강남구 테헤란로 123 바디앤솔빌딩 5층",
-    phone: "02-1234-5678",
+    address: "대전 서구 만년로 67번길 22 5층",
+    phone: "010-477-2827",
     hours: "평일 10:00 - 21:00 / 주말 10:00 - 18:00",
     image: "/images/locations/gangnam.jpg",
     mapUrl: "https://map.kakao.com",
     features: ["프리미엄 시설", "전문 테라피스트", "주차 가능", "VIP 룸"],
     sns: {
-      homepage: "https://bodynsoul.co.kr/gangnam",
-      blog: "https://blog.naver.com/bodynsoul_gangnam",
-      instagram: "https://instagram.com/bodynsoul_gangnam",
+      homepage: "https://bodynsoul.co.kr/mannyeon",
+      blog: "https://blog.naver.com/bodynsoul_mannyeon",
+      instagram: "https://instagram.com/bodynsoul_mannyeon",
     },
   },
   {
     id: 2,
-    name: "홍대 직영점",
+    name: "둔산 직영점",
     description:
-      "트렌디한 홍대 중심에 위치한 직영점으로, 젊은 감각의 인테리어와 다양한 프로그램을 제공합니다. 커플 프로그램과 그룹 세션이 인기 있는 지점입니다.",
-    address: "서울특별시 마포구 와우산로 123 바디앤솔 3층",
+      "1:1 프라이빗 세션을 제공하며, 도심 속 휴식 공간을 경험하실 수 있습니다.",
+    address: "대전광역시 서구 대덕대로 199",
     phone: "02-2345-6789",
     hours: "평일 10:00 - 21:00 / 주말 10:00 - 18:00",
     image: "/images/locations/hongdae.jpg",
@@ -45,19 +45,19 @@ const directStores = [
 const franchiseStores = [
   {
     id: 3,
-    name: "분당점",
+    name: "충대점",
     description:
-      "경기도 분당 지역 최초의 바디앤솔 가맹점으로, 넓은 주차 공간과 가족 친화적인 환경을 제공합니다. 키즈존을 운영하여 아이와 함께 방문하시는 고객님들께 편의를 제공합니다.",
-    address: "경기도 성남시 분당구 정자동 123 바디앤솔 2층",
-    phone: "031-345-6789",
-    hours: "평일 10:00 - 21:00 / 주말 10:00 - 18:00",
+      "대전 최대 200평 규모, 교정,다이어트, 메디필라테스 전문, 메디필라테스 자격증 교육기관, 최고의 강사들만 있는 바디앤솔 충대점!",
+    address: "대전광역시 유성구 대학로 84 4층",
+    phone: "010-4406-2729",
+    hours: "평일 09:00 - 23:00 / 주말 08:00 - 18:00",
     image: "/images/locations/bundang.jpg",
     mapUrl: "https://map.kakao.com",
     features: ["넓은 주차공간", "가족 프로그램", "키즈존"],
     sns: {
-      homepage: "https://bodynsoul.co.kr/bundang",
-      blog: "https://blog.naver.com/bodynsoul_bundang",
-      instagram: "https://instagram.com/bodynsoul_bundang",
+      homepage: "https://bodynsol.info",
+      blog: " https://blog.naver.com/dreambodynsol_cn",
+      instagram: "https://www.instagram.com/bodynsol_cn/",
     },
   },
   {
