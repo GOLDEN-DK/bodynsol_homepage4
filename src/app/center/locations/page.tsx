@@ -166,10 +166,9 @@ export default function LocationsPage() {
               alt={`${selectedStore.name} 이미지`}
               fill
               style={{ objectFit: "cover" }}
-              className="brightness-90"
+              className="rounded-t-lg lg:rounded-l-lg lg:rounded-tr-none"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-            <div className="absolute bottom-0 left-0 p-6">
+            <div className="absolute bottom-0 left-0 p-6 bg-black/50 w-full lg:rounded-bl-lg">
               <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-[#b5b67d] text-black mb-2">
                 {storeType === "direct" ? "직영점" : "가맹점"}
               </span>
@@ -417,8 +416,7 @@ export default function LocationsPage() {
               사전 예약
             </h3>
             <p className="text-[#f5f6e4] text-center">
-              원활한 서비스를 위해 방문 전 전화 또는 홈페이지를 통해 사전 예약을
-              권장합니다.
+              원활한 서비스를 위해 바디코디 어플을 통해 사전 예약을 권장합니다.
             </p>
           </motion.div>
 
@@ -482,8 +480,8 @@ export default function LocationsPage() {
               복장 안내
             </h3>
             <p className="text-[#f5f6e4] text-center">
-              편안한 운동복을 준비해 오시면 됩니다. 필요시 대여 서비스도 이용
-              가능합니다.
+              운동복과 실내용 운동화를 착용하고 방문해 주세요. 수건과 세면도구는
+              개인 지참을 권장합니다.
             </p>
           </motion.div>
 
