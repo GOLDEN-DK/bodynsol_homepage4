@@ -480,7 +480,7 @@ export default function LocationsPage() {
               복장 안내
             </h3>
             <p className="text-[#f5f6e4] text-center">
-              운동복과 실내용 운동화를 착용하고 방문해 주세요. 수건과 세면도구는
+              레슨시에는 운동복과 토삭스를 준비하고 방문해 주세요. 세면도구는
               개인 지참을 권장합니다.
             </p>
           </motion.div>
