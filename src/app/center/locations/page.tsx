@@ -576,7 +576,7 @@ export default function LocationsPage() {
       </div>
 
       {/* 지점 유형 선택 */}
-      <div className="bg-[#1a1a1a] p-6 rounded-xl shadow-lg mb-8">
+      <div className="bg-[#1a1a1a] p-6 rounded-xl shadow-lg mb-8 transition-all duration-300 hover:bg-[#2a2a2a] hover:shadow-xl">
         <h2 className="text-lg font-semibold text-[#b5b67d] mb-4 text-center">
           지점 유형
         </h2>
@@ -586,7 +586,7 @@ export default function LocationsPage() {
             className={`px-8 py-3 rounded-lg text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
               storeType === "academy"
                 ? "bg-[#b5b67d] text-black shadow-lg"
-                : "bg-[#2a2a2a] text-[#b5b67d] hover:bg-[#3a3a3a]"
+                : "bg-[#2a2a2a] text-[#b5b67d] hover:bg-[#3a3a3a] hover:text-white"
             }`}
           >
             <svg
@@ -609,7 +609,7 @@ export default function LocationsPage() {
             className={`px-8 py-3 rounded-lg text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
               storeType === "direct"
                 ? "bg-[#b5b67d] text-black shadow-lg"
-                : "bg-[#2a2a2a] text-[#b5b67d] hover:bg-[#3a3a3a]"
+                : "bg-[#2a2a2a] text-[#b5b67d] hover:bg-[#3a3a3a] hover:text-white"
             }`}
           >
             <svg
@@ -632,7 +632,7 @@ export default function LocationsPage() {
             className={`px-8 py-3 rounded-lg text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
               storeType === "franchise"
                 ? "bg-[#b5b67d] text-black shadow-lg"
-                : "bg-[#2a2a2a] text-[#b5b67d] hover:bg-[#3a3a3a]"
+                : "bg-[#2a2a2a] text-[#b5b67d] hover:bg-[#3a3a3a] hover:text-white"
             }`}
           >
             <svg
@@ -654,7 +654,7 @@ export default function LocationsPage() {
       </div>
 
       {/* 지역 선택 */}
-      <div className="bg-[#1a1a1a] p-6 rounded-xl shadow-lg mb-8">
+      <div className="bg-[#1a1a1a] p-6 rounded-xl shadow-lg mb-8 transition-all duration-300 hover:bg-[#2a2a2a] hover:shadow-xl">
         <h2 className="text-lg font-semibold text-[#b5b67d] mb-4 text-center">
           지역 선택
         </h2>
@@ -668,7 +668,7 @@ export default function LocationsPage() {
                   className={`px-8 py-3 rounded-lg text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
                     selectedRegion === region
                       ? "bg-[#b5b67d] text-black shadow-lg"
-                      : "bg-[#2a2a2a] text-[#b5b67d] hover:bg-[#3a3a3a]"
+                      : "bg-[#2a2a2a] text-[#b5b67d] hover:bg-[#3a3a3a] hover:text-white"
                   }`}
                 >
                   <svg
@@ -701,7 +701,7 @@ export default function LocationsPage() {
                   className={`px-8 py-3 rounded-lg text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
                     selectedRegion === region
                       ? "bg-[#b5b67d] text-black shadow-lg"
-                      : "bg-[#2a2a2a] text-[#b5b67d] hover:bg-[#3a3a3a]"
+                      : "bg-[#2a2a2a] text-[#b5b67d] hover:bg-[#3a3a3a] hover:text-white"
                   }`}
                 >
                   <svg
