@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -475,6 +475,7 @@ export default function LocationsPage() {
     academyStores.대전[0]
   );
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
+  const storeDetailRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -519,6 +520,21 @@ export default function LocationsPage() {
     } else {
       return franchiseStores[selectedRegion];
     }
+  };
+
+  const handleStoreSelect = (store: Store) => {
+    setSelectedStore(store);
+    setCurrentImageIndex(0);
+    // 상세보기의 상단이 화면에 걸리도록 스크롤 위치 조정
+    const offset = 100; // 상단 여백
+    const elementPosition =
+      storeDetailRef.current?.getBoundingClientRect().top ?? 0;
+    const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: "smooth",
+    });
   };
 
   const slideVariants = {
@@ -726,10 +742,7 @@ export default function LocationsPage() {
                 ? "ring-2 ring-[#b5b67d]"
                 : "hover:ring-2 hover:ring-[#b5b67d]/50"
             }`}
-            onClick={() => {
-              setSelectedStore(store);
-              setCurrentImageIndex(0);
-            }}
+            onClick={() => handleStoreSelect(store)}
           >
             <div className="relative h-48">
               <Image
@@ -762,6 +775,7 @@ export default function LocationsPage() {
 
       {/* 선택된 지점 상세 정보 */}
       <motion.div
+        ref={storeDetailRef}
         key={selectedStore.id}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
