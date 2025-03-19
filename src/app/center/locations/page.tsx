@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 // 지점 정보 데이터
 const directStores = [
@@ -14,7 +14,13 @@ const directStores = [
     address: "대전 서구 만년로 67번길 22 5층",
     phone: "010-477-2827",
     hours: "평일 10:00 - 21:00 / 주말 10:00 - 18:00",
-    image: "/images/locations/gangnam.jpg",
+    images: [
+      "/images/locations/manyear1.jpg",
+      "/images/locations/manyear2.jpg",
+      "/images/locations/manyear3.jpg",
+      "/images/locations/manyear4.jpg",
+      "/images/locations/manyear5.jpg",
+    ],
     mapUrl: "https://map.kakao.com",
     features: ["프리미엄 시설", "전문 테라피스트", "주차 가능", "VIP 룸"],
     sns: {
@@ -31,7 +37,13 @@ const directStores = [
     address: "대전광역시 서구 대덕대로 199",
     phone: "02-2345-6789",
     hours: "평일 10:00 - 21:00 / 주말 10:00 - 18:00",
-    image: "/images/locations/hongdae.jpg",
+    images: [
+      "/images/locations/dunsan1.jpg",
+      "/images/locations/dunsan2.jpg",
+      "/images/locations/dunsan3.jpg",
+      "/images/locations/dunsan4.jpg",
+      "/images/locations/dunsan5.jpg",
+    ],
     mapUrl: "https://map.kakao.com",
     features: ["트렌디한 인테리어", "커플 프로그램", "주차 가능"],
     sns: {
@@ -51,7 +63,13 @@ const franchiseStores = [
     address: "대전광역시 유성구 대학로 84 4층",
     phone: "010-4406-2729",
     hours: "평일 09:00 - 23:00 / 주말 08:00 - 18:00",
-    image: "/images/locations/chungdae.jpg",
+    images: [
+      "/images/locations/chungdae1.jpg",
+      "/images/locations/chungdae2.jpg",
+      "/images/locations/chungdae3.jpg",
+      "/images/locations/chungdae4.jpg",
+      "/images/locations/chungdae5.jpg",
+    ],
     mapUrl: "https://map.kakao.com",
     features: ["넓은 주차공간", "다양한 프로그램", "프리미엄 시설"],
     sns: {
@@ -68,7 +86,13 @@ const franchiseStores = [
     address: "부산광역시 해운대구 해운대해변로 123 오션타워 8층",
     phone: "051-789-1234",
     hours: "평일 09:00 - 20:00 / 주말 10:00 - 19:00",
-    image: "/images/locations/haeundae.jpg",
+    images: [
+      "/images/locations/haeundae1.jpg",
+      "/images/locations/haeundae2.jpg",
+      "/images/locations/haeundae3.jpg",
+      "/images/locations/haeundae4.jpg",
+      "/images/locations/haeundae5.jpg",
+    ],
     mapUrl: "https://map.kakao.com",
     features: ["오션뷰", "해양 테라피", "프리미엄 라운지"],
     sns: {
@@ -82,6 +106,17 @@ const franchiseStores = [
 export default function LocationsPage() {
   const [storeType, setStoreType] = useState("direct");
   const [selectedStore, setSelectedStore] = useState(directStores[0]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImageIndex((prevIndex) =>
+        prevIndex === selectedStore.images.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 8000); // 8초마다 이미지 변경
+
+    return () => clearInterval(timer);
+  }, [selectedStore.images.length]);
 
   const handleStoreTypeChange = (type: "direct" | "franchise") => {
     setStoreType(type);
@@ -90,9 +125,48 @@ export default function LocationsPage() {
     } else {
       setSelectedStore(franchiseStores[0]);
     }
+    setCurrentImageIndex(0); // 지점 변경시 이미지 인덱스 초기화
   };
 
   const currentStores = storeType === "direct" ? directStores : franchiseStores;
+
+  const slideVariants = {
+    enter: {
+      opacity: 0,
+      scale: 1.02,
+      transition: {
+        duration: 1.8,
+        ease: [0.4, 0, 0.2, 1],
+      },
+    },
+    center: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 1.8,
+        ease: [0.4, 0, 0.2, 1],
+      },
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.98,
+      transition: {
+        duration: 1.8,
+        ease: [0.4, 0, 0.2, 1],
+      },
+    },
+  };
+
+  const swipeConfidenceThreshold = 10000;
+  const swipePower = (offset: number, velocity: number) => {
+    return Math.abs(offset) * velocity;
+  };
+
+  const paginate = (newDirection: number) => {
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === selectedStore.images.length - 1 ? 0 : prevIndex + 1
+    );
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-black">
@@ -161,14 +235,41 @@ export default function LocationsPage() {
       >
         <div className="grid grid-cols-1 lg:grid-cols-2">
           <div className="relative h-80 lg:h-auto">
-            <Image
-              src={selectedStore.image}
-              alt={`${selectedStore.name} 이미지`}
-              fill
-              style={{ objectFit: "cover" }}
-              className="rounded-t-lg lg:rounded-l-lg lg:rounded-tr-none"
-            />
-            <div className="absolute bottom-0 left-0 p-6 bg-black/50 w-full lg:rounded-bl-lg">
+            <AnimatePresence initial={false} mode="wait">
+              <motion.div
+                key={currentImageIndex}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                className="absolute inset-0"
+              >
+                <Image
+                  src={selectedStore.images[currentImageIndex]}
+                  alt={`${selectedStore.name} 이미지 ${currentImageIndex + 1}`}
+                  fill
+                  style={{ objectFit: "cover" }}
+                  className="rounded-t-lg lg:rounded-l-lg lg:rounded-tr-none"
+                  priority
+                />
+              </motion.div>
+            </AnimatePresence>
+            {/* 이미지 인디케이터 */}
+            <div className="absolute bottom-20 left-0 right-0 flex justify-center gap-2">
+              {selectedStore.images.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentImageIndex(index)}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    index === currentImageIndex
+                      ? "bg-[#b5b67d] w-4"
+                      : "bg-white/50 hover:bg-white/75"
+                  }`}
+                />
+              ))}
+            </div>
+            {/* 지점 정보 - 이미지 슬라이드쇼와 독립적으로 표시 */}
+            <div className="absolute bottom-0 left-0 right-0 p-6 bg-black/50 w-full lg:rounded-bl-lg z-10">
               <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-[#b5b67d] text-black mb-2">
                 {storeType === "direct" ? "직영점" : "가맹점"}
               </span>
@@ -416,7 +517,8 @@ export default function LocationsPage() {
               사전 예약
             </h3>
             <p className="text-[#f5f6e4] text-center">
-              원활한 서비스를 위해 바디코디 어플을 통해 사전 예약을 권장합니다.
+              원활한 서비스를 위해 네이버 플레이스를 통해 사전 예약을
+              권장합니다.
             </p>
           </motion.div>
 
@@ -439,7 +541,7 @@ export default function LocationsPage() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3v-11a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
                   />
                 </svg>
               </div>
