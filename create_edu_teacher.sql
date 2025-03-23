@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS "edu_teacher" ("id" TEXT NOT NULL, "name" TEXT NOT NULL, "bio" TEXT, "experience" TEXT, "certifications" TEXT, "profileImage" TEXT, "isActive" BOOLEAN NOT NULL DEFAULT true, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP(3) NOT NULL, CONSTRAINT "edu_teacher_pkey" PRIMARY KEY ("id"));

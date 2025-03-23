@@ -12,6 +12,8 @@ export const dynamic = "force-dynamic";
 const adminMenuItems = [
   { name: "대시보드", href: "/admin", icon: "dashboard" },
   { name: "배너 관리", href: "/admin/banners", icon: "image" },
+  { name: "카테고리 관리", href: "/admin/categories", icon: "file" },
+  { name: "강사 관리", href: "/admin/teachers", icon: "users" },
   { name: "과정 관리", href: "/admin/courses", icon: "school" },
   { name: "사용자 관리", href: "/admin/users", icon: "users" },
   { name: "설정", href: "/admin/settings", icon: "settings" },

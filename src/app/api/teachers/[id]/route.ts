@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth/next";
+import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { prisma } from "@/lib/prisma";
 
-// GET 요청 처리 - 특정 배너 가져오기
+// GET - 특정 강사 정보 조회
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
@@ -12,25 +12,28 @@ export async function GET(
     const paramValues = await params;
     const id = paramValues.id;
 
-    const banner = await prisma.banner.findUnique({
+    const teacher = await prisma.teacher.findUnique({
       where: { id }
     });
 
-    if (!banner) {
-      return NextResponse.json({ error: "배너를 찾을 수 없습니다." }, { status: 404 });
+    if (!teacher) {
+      return NextResponse.json(
+        { error: "강사를 찾을 수 없습니다." },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json(banner);
+    return NextResponse.json(teacher);
   } catch (error) {
-    console.error("배너 조회 오류:", error);
+    console.error("강사 조회 오류:", error);
     return NextResponse.json(
-      { error: "배너 조회 중 오류가 발생했습니다." },
+      { error: "강사 조회 중 오류가 발생했습니다." },
       { status: 500 }
     );
   }
 }
 
-// PATCH 요청 처리 - 배너 업데이트
+// PATCH - 강사 정보 업데이트
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
@@ -48,34 +51,34 @@ export async function PATCH(
     const id = paramValues.id;
     const data = await request.json();
 
-    // 배너가 존재하는지 확인
-    const existingBanner = await prisma.banner.findUnique({
+    // 강사가 존재하는지 확인
+    const existingTeacher = await prisma.teacher.findUnique({
       where: { id }
     });
 
-    if (!existingBanner) {
+    if (!existingTeacher) {
       return NextResponse.json(
-        { error: "배너를 찾을 수 없습니다." },
+        { error: "강사를 찾을 수 없습니다." },
         { status: 404 }
       );
     }
 
-    const updatedBanner = await prisma.banner.update({
+    const updatedTeacher = await prisma.teacher.update({
       where: { id },
       data
     });
 
-    return NextResponse.json(updatedBanner);
+    return NextResponse.json(updatedTeacher);
   } catch (error) {
-    console.error("배너 업데이트 오류:", error);
+    console.error("강사 업데이트 오류:", error);
     return NextResponse.json(
-      { error: "배너 업데이트 중 오류가 발생했습니다." },
+      { error: "강사 업데이트 중 오류가 발생했습니다." },
       { status: 500 }
     );
   }
 }
 
-// DELETE 요청 처리 - 배너 삭제
+// DELETE - 강사 삭제
 export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
@@ -92,28 +95,28 @@ export async function DELETE(
     const paramValues = await params;
     const id = paramValues.id;
 
-    // 배너가 존재하는지 확인
-    const existingBanner = await prisma.banner.findUnique({
+    // 강사가 존재하는지 확인
+    const existingTeacher = await prisma.teacher.findUnique({
       where: { id }
     });
 
-    if (!existingBanner) {
+    if (!existingTeacher) {
       return NextResponse.json(
-        { error: "배너를 찾을 수 없습니다." },
+        { error: "강사를 찾을 수 없습니다." },
         { status: 404 }
       );
     }
 
-    await prisma.banner.delete({
+    await prisma.teacher.delete({
       where: { id }
     });
 
-    return NextResponse.json({ message: "배너가 삭제되었습니다." });
+    return NextResponse.json({ message: "강사가 삭제되었습니다." });
   } catch (error) {
-    console.error("배너 삭제 오류:", error);
+    console.error("강사 삭제 오류:", error);
     return NextResponse.json(
-      { error: "배너 삭제 중 오류가 발생했습니다." },
+      { error: "강사 삭제 중 오류가 발생했습니다." },
       { status: 500 }
     );
   }
-}
+} 

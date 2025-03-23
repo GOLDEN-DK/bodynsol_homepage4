@@ -29,26 +29,29 @@ const courseUpdateSchema = z.object({
 
 // GET 요청 처리 - 특정 과정 조회
 export async function GET(
-  request: NextRequest,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
+    const paramValues = await params;
+    const id = paramValues.id;
+
     const course = await prisma.course.findUnique({
-      where: { id: params.id },
+      where: { id }
     });
 
     if (!course) {
       return NextResponse.json(
-        { error: "과정을 찾을 수 없습니다." },
+        { error: "강좌를 찾을 수 없습니다." },
         { status: 404 }
       );
     }
 
     return NextResponse.json(course);
   } catch (error) {
-    console.error("과정 조회 오류:", error);
+    console.error("강좌 조회 오류:", error);
     return NextResponse.json(
-      { error: "과정을 조회하는 중 오류가 발생했습니다." },
+      { error: "강좌 조회 중 오류가 발생했습니다." },
       { status: 500 }
     );
   }
@@ -56,96 +59,45 @@ export async function GET(
 
 // PATCH 요청 처리 - 과정 업데이트
 export async function PATCH(
-  request: NextRequest,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    // 세션 확인
     const session = await getServerSession(authOptions);
-    if (!session || session.user.role !== "admin") {
-      return NextResponse.json({ error: "권한이 없습니다." }, { status: 403 });
-    }
-
-    // 요청 데이터 파싱
-    const data = await request.json();
-
-    // 데이터 유효성 검사
-    const validationResult = courseUpdateSchema.safeParse(data);
-    if (!validationResult.success) {
+    if (!session || session.user?.role !== "admin") {
       return NextResponse.json(
-        {
-          error: "유효하지 않은 데이터입니다.",
-          details: validationResult.error.format(),
-        },
-        { status: 400 }
+        { error: "권한이 없습니다." },
+        { status: 403 }
       );
     }
 
-    // 과정 존재 여부 확인
+    const paramValues = await params;
+    const id = paramValues.id;
+    const data = await request.json();
+
+    // 강좌가 존재하는지 확인
     const existingCourse = await prisma.course.findUnique({
-      where: { id: params.id },
+      where: { id }
     });
 
     if (!existingCourse) {
       return NextResponse.json(
-        { error: "과정을 찾을 수 없습니다." },
+        { error: "강좌를 찾을 수 없습니다." },
         { status: 404 }
       );
     }
 
-    // 슬러그 중복 확인 (슬러그가 변경된 경우에만)
-    if (data.slug && data.slug !== existingCourse.slug) {
-      const courseWithSameSlug = await prisma.course.findUnique({
-        where: { slug: data.slug },
-      });
-
-      if (courseWithSameSlug) {
-        return NextResponse.json(
-          { error: "이미 사용 중인 슬러그입니다. 다른 슬러그를 사용해주세요." },
-          { status: 400 }
-        );
-      }
-    }
-
-    // 과정 업데이트
+    // 데이터 업데이트
     const updatedCourse = await prisma.course.update({
-      where: { id: params.id },
-      data: {
-        ...(data.title && { title: data.title }),
-        ...(data.slug && { slug: data.slug }),
-        ...(data.description && { description: data.description }),
-        ...(data.content && { content: data.content }),
-        ...(data.thumbnailUrl && { thumbnailUrl: data.thumbnailUrl }),
-        ...(data.thumbnailWidth && { thumbnailWidth: data.thumbnailWidth }),
-        ...(data.thumbnailHeight && { thumbnailHeight: data.thumbnailHeight }),
-        ...(data.category && { category: data.category }),
-        ...(data.instructor && { instructor: data.instructor }),
-        ...(data.instructorInfo !== undefined && {
-          instructorInfo: data.instructorInfo,
-        }),
-        ...(data.instructorImageUrl !== undefined && {
-          instructorImageUrl: data.instructorImageUrl,
-        }),
-        ...(data.schedule !== undefined && { schedule: data.schedule }),
-        ...(data.duration !== undefined && { duration: data.duration }),
-        ...(data.location !== undefined && { location: data.location }),
-        ...(data.maxStudents !== undefined && {
-          maxStudents: data.maxStudents,
-        }),
-        ...(data.price !== undefined && { price: data.price }),
-        ...(data.discountPrice !== undefined && {
-          discountPrice: data.discountPrice,
-        }),
-        ...(data.paymentMethods && { paymentMethods: data.paymentMethods }),
-        ...(data.isActive !== undefined && { isActive: data.isActive }),
-      },
+      where: { id },
+      data
     });
 
     return NextResponse.json(updatedCourse);
   } catch (error) {
-    console.error("과정 업데이트 오류:", error);
+    console.error("강좌 업데이트 오류:", error);
     return NextResponse.json(
-      { error: "과정을 업데이트하는 중 오류가 발생했습니다." },
+      { error: "강좌 업데이트 중 오류가 발생했습니다." },
       { status: 500 }
     );
   }
@@ -153,38 +105,42 @@ export async function PATCH(
 
 // DELETE 요청 처리 - 과정 삭제
 export async function DELETE(
-  request: NextRequest,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    // 세션 확인
     const session = await getServerSession(authOptions);
-    if (!session || session.user.role !== "admin") {
-      return NextResponse.json({ error: "권한이 없습니다." }, { status: 403 });
+    if (!session || session.user?.role !== "admin") {
+      return NextResponse.json(
+        { error: "권한이 없습니다." },
+        { status: 403 }
+      );
     }
 
-    // 과정 존재 여부 확인
+    const paramValues = await params;
+    const id = paramValues.id;
+
+    // 강좌가 존재하는지 확인
     const existingCourse = await prisma.course.findUnique({
-      where: { id: params.id },
+      where: { id }
     });
 
     if (!existingCourse) {
       return NextResponse.json(
-        { error: "과정을 찾을 수 없습니다." },
+        { error: "강좌를 찾을 수 없습니다." },
         { status: 404 }
       );
     }
 
-    // 과정 삭제
     await prisma.course.delete({
-      where: { id: params.id },
+      where: { id }
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ message: "강좌가 삭제되었습니다." });
   } catch (error) {
-    console.error("과정 삭제 오류:", error);
+    console.error("강좌 삭제 오류:", error);
     return NextResponse.json(
-      { error: "과정을 삭제하는 중 오류가 발생했습니다." },
+      { error: "강좌 삭제 중 오류가 발생했습니다." },
       { status: 500 }
     );
   }

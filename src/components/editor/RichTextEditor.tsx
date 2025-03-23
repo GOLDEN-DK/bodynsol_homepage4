@@ -179,12 +179,13 @@ const RichTextEditor = ({
       )}
       <EditorContent
         editor={editor}
-        className="prose max-w-none p-4 min-h-[200px] max-h-[500px] overflow-y-auto"
+        className="prose max-w-none p-4 min-h-[200px] max-h-[500px] overflow-y-auto text-gray-900"
       />
       <style jsx global>{`
         .ProseMirror {
           min-height: 200px;
           outline: none;
+          color: #111827; /* text-gray-900 색상 코드 */
         }
         .ProseMirror p.is-editor-empty:first-child::before {
           content: attr(data-placeholder);

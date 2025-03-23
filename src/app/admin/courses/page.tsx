@@ -16,6 +16,13 @@ export const runtime = "edge";
 // 서버 사이드 렌더링 비활성화
 export const unstable_noStore = true;
 
+// 카테고리 인터페이스 정의
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 // 과정 인터페이스 정의
 interface Course {
   id: string;
@@ -36,6 +43,7 @@ interface Course {
 export default function AdminCourses() {
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -61,14 +69,24 @@ export default function AdminCourses() {
 
   // 과정 목록 가져오기
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch("/api/courses");
-        if (!response.ok) {
+        // 과정 목록 가져오기
+        const coursesResponse = await fetch("/api/courses");
+        if (!coursesResponse.ok) {
           throw new Error("과정 목록을 불러오는데 실패했습니다.");
         }
-        const data = await response.json();
-        setCourses(data);
+        const coursesData = await coursesResponse.json();
+        
+        // 카테고리 정보 가져오기
+        const categoriesResponse = await fetch("/api/categories");
+        if (!categoriesResponse.ok) {
+          throw new Error("카테고리 목록을 불러오는데 실패했습니다.");
+        }
+        const categoriesData = await categoriesResponse.json();
+        
+        setCourses(coursesData);
+        setCategories(categoriesData);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다."
@@ -79,7 +97,7 @@ export default function AdminCourses() {
     };
 
     if (mounted && session?.user?.role === "admin") {
-      fetchCourses();
+      fetchData();
     }
   }, [session, mounted]);
 
@@ -131,6 +149,12 @@ export default function AdminCourses() {
         err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다."
       );
     }
+  };
+
+  // 카테고리 ID로 카테고리 이름 찾기
+  const getCategoryName = (categoryId: string) => {
+    const category = categories.find(cat => cat.id === categoryId);
+    return category ? category.name : categoryId;
   };
 
   if (status === "loading" || loading) {
@@ -255,7 +279,7 @@ export default function AdminCourses() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {course.category}
+                        {getCategoryName(course.category)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

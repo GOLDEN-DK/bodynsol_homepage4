@@ -19,7 +19,8 @@ export async function DELETE(
     }
 
     // URL에서 ID 추출
-    const id = params.id;
+    const paramValues = await params;
+    const id = paramValues.id;
 
     // 미디어 정보 조회
     const media = await prisma.media.findUnique({
@@ -54,6 +55,35 @@ export async function DELETE(
     console.error("미디어 삭제 오류:", error);
     return NextResponse.json(
       { error: "미디어 삭제 중 오류가 발생했습니다." },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const paramValues = await params;
+    const id = paramValues.id;
+
+    const media = await prisma.media.findUnique({
+      where: { id }
+    });
+
+    if (!media) {
+      return NextResponse.json(
+        { error: "미디어를 찾을 수 없습니다." },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(media);
+  } catch (error) {
+    console.error("미디어 조회 오류:", error);
+    return NextResponse.json(
+      { error: "미디어 조회 중 오류가 발생했습니다." },
       { status: 500 }
     );
   }
