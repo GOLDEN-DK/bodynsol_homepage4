@@ -37,7 +37,6 @@ model Banner {
 model Course {
   id              String   @id @default(cuid())
   title           String
-  slug            String   @unique
   description     String
   thumbnailUrl    String
   thumbnailWidth  Int
@@ -49,6 +48,10 @@ model Course {
   isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  slug            String   @unique
+  target          String?
+  
+  applications    Application[]
 }
 
 model Event {
@@ -111,6 +114,32 @@ model Setting {
   updatedAt DateTime @updatedAt
 }
 
+model EduCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("edu_category")
+}
+
+model Teacher {
+  id             String   @id @default(cuid())
+  name           String
+  bio            String?
+  experience     String?
+  certifications String?
+  profileImage   String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("edu_teacher")
+}
+
 model admin {
   id            Int     @id @default(autoincrement())
   username      String  @unique @db.VarChar(64)
@@ -139,28 +168,26 @@ model category {
   article article[]
 }
 
-model EduCategory {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  slug        String   @unique
-  description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@map("edu_category")
-}
-
-model Teacher {
-  id             String   @id @default(cuid())
-  name           String
-  bio            String?
-  experience     String?
-  certifications String?
-  profileImage   String?
-  isActive       Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  @@map("edu_teacher")
+model Application {
+  id                String   @id @default(cuid())
+  courseId          String
+  scheduleId        String
+  koreanName        String
+  englishName       String   @default("")
+  email             String
+  phone             String
+  gender            String
+  age               String
+  occupation        String
+  region            String
+  pilatesExperience String
+  question          String   @default("")
+  paymentMethod     String
+  status            String   @default("pending") // pending, confirmed, cancelled, completed
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  course            Course   @relation(fields: [courseId], references: [id])
+  
+  @@index([courseId])
 }

@@ -6,20 +6,11 @@ import { prisma } from "@/lib/prisma";
 // GET - 모든 강사 목록 조회
 export async function GET(request: NextRequest) {
   try {
-    const teachers = await prisma.teacher.findMany({
-      orderBy: {
-        name: "asc",
-      },
-      select: {
-        id: true,
-        name: true,
-        bio: true,
-        profileImage: true,
-        isActive: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    const teachers = await prisma.$queryRaw`
+      SELECT id, name, bio, "profileImage", "isActive", "createdAt", "updatedAt"
+      FROM edu_teacher
+      ORDER BY name ASC
+    `;
 
     return NextResponse.json(teachers);
   } catch (error) {
@@ -55,18 +46,25 @@ export async function POST(request: NextRequest) {
     }
 
     // 강사 생성
-    const newTeacher = await prisma.teacher.create({
-      data: {
-        name,
-        bio: bio || null,
-        experience: experience || null,
-        certifications: certifications || null,
-        profileImage: profileImage || null,
-        isActive,
-      },
-    });
+    const newTeacher = await prisma.$queryRaw`
+      INSERT INTO edu_teacher (
+        id, name, bio, experience, certifications, "profileImage", "isActive", "createdAt", "updatedAt"
+      )
+      VALUES (
+        ${crypto.randomUUID()},
+        ${name},
+        ${bio || null},
+        ${experience || null},
+        ${certifications || null},
+        ${profileImage || null},
+        ${isActive},
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP
+      )
+      RETURNING id, name, bio, experience, certifications, "profileImage", "isActive", "createdAt", "updatedAt"
+    `;
 
-    return NextResponse.json(newTeacher, { status: 201 });
+    return NextResponse.json((newTeacher as any[])[0], { status: 201 });
   } catch (error) {
     console.error("강사 생성 오류:", error);
     return NextResponse.json(

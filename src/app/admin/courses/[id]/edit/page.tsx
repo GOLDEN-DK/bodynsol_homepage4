@@ -57,6 +57,7 @@ interface CourseData {
   location: string;
   paymentMethods: string[];
   scheduleItems: ScheduleItem[];
+  target: string;
 }
 
 export default function EditCourse({ params }: { params: { id: string } }) {
@@ -96,6 +97,7 @@ export default function EditCourse({ params }: { params: { id: string } }) {
     scheduleItems: [],
     thumbnailWidth: 0,
     thumbnailHeight: 0,
+    target: "",
   });
 
   // 새 일정 상태 추가
@@ -181,6 +183,7 @@ export default function EditCourse({ params }: { params: { id: string } }) {
         location: data.location || "",
         paymentMethods: data.paymentMethods || [],
         scheduleItems: scheduleItems,
+        target: data.target || "",
       };
       
       setCourseData(processedData);
@@ -355,6 +358,7 @@ export default function EditCourse({ params }: { params: { id: string } }) {
         instructorImageUrl: courseData.instructorImageUrl,
         paymentMethods: courseData.paymentMethods,
         isActive: courseData.isActive,
+        target: courseData.target,
       };
       
       const response = await fetch(`/api/courses/${courseId}`, {
@@ -696,6 +700,27 @@ export default function EditCourse({ params }: { params: { id: string } }) {
               >
                 {/* Add category options here */}
               </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="target"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                교육대상
+              </label>
+              <input
+                type="text"
+                id="target"
+                name="target"
+                value={courseData.target}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                placeholder="교육 대상을 입력하세요"
+              />
+              <p className="mt-1 text-sm text-gray-500">
+                이 과정의 대상 수강생을 간략히 설명해주세요. (예: 초급자, 영양사, 관리자 등)
+              </p>
             </div>
           </div>
 

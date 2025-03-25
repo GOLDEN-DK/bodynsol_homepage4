@@ -77,6 +77,7 @@ export async function POST(request: NextRequest) {
         schedule: data.schedule || null,
         price: data.price ? parseInt(data.price) : null,
         isActive: data.isActive !== undefined ? data.isActive : true,
+        target: data.target || null,
       },
     });
     

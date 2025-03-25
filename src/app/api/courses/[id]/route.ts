@@ -25,6 +25,7 @@ const courseUpdateSchema = z.object({
   discountPrice: z.number().optional().nullable(),
   paymentMethods: z.array(z.string()).optional(),
   isActive: z.boolean().optional(),
+  target: z.string().optional(),
 });
 
 // GET 요청 처리 - 특정 과정 조회

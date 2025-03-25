@@ -60,6 +60,7 @@ interface CourseData {
   isActive: boolean;
   schedule: string;
   scheduleItems: ScheduleItem[];
+  target: string;
 }
 
 export default function NewCourse() {
@@ -96,6 +97,7 @@ export default function NewCourse() {
     isActive: true,
     schedule: "",
     scheduleItems: [],
+    target: "",
   });
 
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
@@ -387,6 +389,7 @@ export default function NewCourse() {
         instructorImageUrl: '',
         paymentMethods: courseData.paymentMethods,
         isActive: courseData.isActive,
+        target: courseData.target,
       };
 
       // API 요청
@@ -629,6 +632,27 @@ export default function NewCourse() {
               )}
               <p className="mt-1 text-xs text-gray-500">
                 이미지 권장 크기: 800 x 600px
+              </p>
+            </div>
+
+            <div>
+              <label
+                htmlFor="target"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                교육대상
+              </label>
+              <input
+                type="text"
+                id="target"
+                name="target"
+                value={courseData.target}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                placeholder="교육 대상을 입력하세요"
+              />
+              <p className="mt-1 text-sm text-gray-500">
+                이 과정의 대상 수강생을 간략히 설명해주세요. (예: 초급자, 영양사, 관리자 등)
               </p>
             </div>
           </div>

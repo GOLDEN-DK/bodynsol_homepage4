@@ -7,20 +7,11 @@ import { prisma } from "@/lib/prisma";
 export async function GET(request: NextRequest) {
   try {
     // 교육 카테고리 테이블을 사용하여 조회
-    const categories = await prisma.eduCategory.findMany({
-      orderBy: {
-        name: "asc",
-      },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        description: true,
-        isActive: true,
-        createdAt: true,
-        updatedAt: true,
-      }
-    });
+    const categories = await prisma.$queryRaw`
+      SELECT id, name, slug, description, "isActive", "createdAt", "updatedAt" 
+      FROM edu_category 
+      ORDER BY name ASC
+    `;
 
     return NextResponse.json(categories);
   } catch (error) {
@@ -56,16 +47,11 @@ export async function POST(request: NextRequest) {
     }
 
     // 중복 검사
-    const existingCategory = await prisma.eduCategory.findFirst({
-      where: {
-        OR: [
-          { name },
-          { slug },
-        ],
-      },
-    });
+    const existingCategory = await prisma.$queryRaw`
+      SELECT id FROM edu_category WHERE name = ${name} OR slug = ${slug} LIMIT 1
+    `;
 
-    if (existingCategory) {
+    if (existingCategory && (existingCategory as any[]).length > 0) {
       return NextResponse.json(
         { error: "이미 동일한 이름 또는 슬러그의 카테고리가 존재합니다." },
         { status: 400 }
@@ -73,16 +59,21 @@ export async function POST(request: NextRequest) {
     }
 
     // 카테고리 생성
-    const newCategory = await prisma.eduCategory.create({
-      data: {
-        name,
-        slug,
-        description,
-        isActive,
-      },
-    });
+    const newCategory = await prisma.$queryRaw`
+      INSERT INTO edu_category (id, name, slug, description, "isActive", "createdAt", "updatedAt")
+      VALUES (
+        ${crypto.randomUUID()}, 
+        ${name}, 
+        ${slug}, 
+        ${description || null}, 
+        ${isActive}, 
+        CURRENT_TIMESTAMP, 
+        CURRENT_TIMESTAMP
+      )
+      RETURNING id, name, slug, description, "isActive", "createdAt", "updatedAt"
+    `;
 
-    return NextResponse.json(newCategory, { status: 201 });
+    return NextResponse.json((newCategory as any[])[0], { status: 201 });
   } catch (error) {
     console.error("카테고리 생성 오류:", error);
     return NextResponse.json(
