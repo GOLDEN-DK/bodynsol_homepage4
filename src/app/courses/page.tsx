@@ -36,36 +36,48 @@ interface Category {
 
 // Cloudinary 이미지 URL을 사용할 때 필요한 로더
 const cloudinaryLoader = ({ src, width }: { src: string; width: number }) => {
-  // Cloudinary URL인 경우에만 처리
-  if (src.includes('cloudinary.com')) {
-    // URL이 이미 변환 매개변수를 포함하는 경우 그대로 반환
-    if (src.includes('/upload/c_')) {
-      return src;
+  try {
+    // Cloudinary URL인 경우에만 처리
+    if (src.includes("cloudinary.com")) {
+      // URL이 이미 변환 매개변수를 포함하는 경우 그대로 반환
+      if (src.includes("/upload/c_")) {
+        return src;
+      }
+
+      // 이미지 최적화 매개변수 추가
+      const params = ["c_fill", "g_auto", `w_${width}`, "q_auto", "f_auto"];
+      const paramsString = params.join(",");
+      return src.replace("/upload/", `/upload/${paramsString}/`);
     }
-    
-    // 이미지 최적화 매개변수 추가
-    const params = ['c_fill', 'g_auto', `w_${width}`, 'h_400', 'q_auto', 'f_auto'];
-    const paramsString = params.join(',');
-    return src.replace('/upload/', `/upload/${paramsString}/`);
+
+    // 일반 URL은 그대로 반환
+    return src;
+  } catch (error) {
+    console.error("이미지 URL 변환 오류:", error);
+    return src;
   }
-  
-  // 일반 URL은 그대로 반환
-  return src;
 };
 
 // 디버깅을 위한 로깅 함수
 const logImageDetails = (course: Course) => {
   if (course.thumbnailUrl) {
-    console.log(`[이미지 디버깅] 과정: ${course.title}, URL: ${course.thumbnailUrl}`);
-    
+    console.log(
+      `[이미지 디버깅] 과정: ${course.title}, URL: ${course.thumbnailUrl}`
+    );
+    console.log(
+      `[이미지 디버깅] 이미지 크기: ${course.thumbnailWidth}x${course.thumbnailHeight}`
+    );
+
     // Cloudinary URL 변환 테스트
-    if (course.thumbnailUrl.includes('cloudinary.com')) {
-      const transformedUrl = cloudinaryLoader({ 
-        src: course.thumbnailUrl, 
-        width: 800 
+    if (course.thumbnailUrl.includes("cloudinary.com")) {
+      const transformedUrl = cloudinaryLoader({
+        src: course.thumbnailUrl,
+        width: 800,
       });
       console.log(`[이미지 디버깅] 변환된 URL: ${transformedUrl}`);
     }
+  } else {
+    console.log(`[이미지 디버깅] 과정: ${course.title}, 썸네일 URL 없음`);
   }
 };
 
@@ -82,59 +94,62 @@ export default function CoursesPage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         // 교육과정 데이터 가져오기
         const coursesResponse = await fetch("/api/courses");
         if (!coursesResponse.ok) {
           throw new Error("교육과정 목록을 불러오는데 실패했습니다.");
         }
         const coursesData = await coursesResponse.json();
-        
+
         // 이미지 URL 디버깅
+        console.log("[데이터 디버깅] 받은 과정 데이터:", coursesData);
         if (Array.isArray(coursesData) && coursesData.length > 0) {
           coursesData.forEach(logImageDetails);
         }
-        
+
         // 카테고리 데이터 가져오기
         const categoriesResponse = await fetch("/api/categories");
         if (!categoriesResponse.ok) {
           throw new Error("카테고리 목록을 불러오는데 실패했습니다.");
         }
         const categoriesData = await categoriesResponse.json();
-        
+
         setCourses(coursesData);
         setCategories(categoriesData);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다.");
+        setError(
+          err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다."
+        );
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, []);
 
   // 일정을 파싱하여 마지막 일정의 종료일이 지났는지 확인하는 함수
   const isPastCourse = (course: Course) => {
     if (!course.schedule) return false;
-    
+
     try {
       // 일정 데이터 파싱 시도
       const scheduleData = JSON.parse(course.schedule);
-      
+
       // 배열이 아니면 일반 문자열로 처리
       if (!Array.isArray(scheduleData)) return false;
-      
+
       // 빈 배열이면 과거 과정이 아님
       if (scheduleData.length === 0) return false;
-      
+
       // 마지막 일정의 종료일 확인
       const lastSchedule = scheduleData[scheduleData.length - 1];
       if (!lastSchedule.endDate) return false;
-      
+
       const endDate = new Date(lastSchedule.endDate);
       const today = new Date();
-      
+
       // 종료일이 오늘보다 이전이면 과거 과정
       return endDate < today;
     } catch (error) {
@@ -146,23 +161,25 @@ export default function CoursesPage() {
   // 일정 데이터에서 다음 일정을 가져오는 함수
   const getNextSchedule = (course: Course) => {
     if (!course.schedule) return null;
-    
+
     try {
       const scheduleData = JSON.parse(course.schedule);
-      
-      if (!Array.isArray(scheduleData) || scheduleData.length === 0) return null;
-      
+
+      if (!Array.isArray(scheduleData) || scheduleData.length === 0)
+        return null;
+
       // 현재 일자 이후의 일정 찾기
       const today = new Date();
       const upcomingSchedules = scheduleData.filter(
         (schedule) => new Date(schedule.endDate) >= today
       );
-      
+
       if (upcomingSchedules.length === 0) return null;
-      
+
       // 가장 빠른 일정 반환
       return upcomingSchedules.sort(
-        (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+        (a, b) =>
+          new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
       )[0];
     } catch (error) {
       return null;
@@ -172,30 +189,31 @@ export default function CoursesPage() {
   // 날짜 포맷팅 함수
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return date.toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   // 필터링된 교육과정 목록
-  const filteredCourses = courses.filter(course => {
+  const filteredCourses = courses.filter((course) => {
     // 비활성화된 과정은 표시하지 않음
     if (!course.isActive) return false;
-    
+
     // 카테고리 필터링
-    if (selectedCategory !== "all" && course.category !== selectedCategory) return false;
-    
+    if (selectedCategory !== "all" && course.category !== selectedCategory)
+      return false;
+
     // 과거 과정 필터링
     if (!showPastCourses && isPastCourse(course)) return false;
-    
+
     return true;
   });
 
   // 카테고리 이름 가져오기
   const getCategoryName = (categoryId: string) => {
-    const category = categories.find(cat => cat.id === categoryId);
+    const category = categories.find((cat) => cat.id === categoryId);
     return category ? category.name : categoryId;
   };
 
@@ -231,14 +249,17 @@ export default function CoursesPage() {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-white mb-4">교육과정</h1>
       <p className="text-gray-300 mb-8">
-        바디앤솔 아카데미에서 제공하는 다양한 교육과정을 살펴보세요. 
-        전문적인 강사진과 체계적인 커리큘럼으로 구성된 교육을 통해 전문가로 성장하세요.
+        바디앤솔 아카데미에서 제공하는 다양한 교육과정을 살펴보세요. 전문적인
+        강사진과 체계적인 커리큘럼으로 구성된 교육을 통해 전문가로 성장하세요.
       </p>
-      
+
       {/* 필터링 옵션 */}
       <div className="flex flex-col md:flex-row gap-4 mb-8">
         <div className="flex-1">
-          <label htmlFor="category-filter" className="block text-sm font-medium text-gray-300 mb-1">
+          <label
+            htmlFor="category-filter"
+            className="block text-sm font-medium text-gray-300 mb-1"
+          >
             카테고리
           </label>
           <select
@@ -255,7 +276,7 @@ export default function CoursesPage() {
             ))}
           </select>
         </div>
-        
+
         <div className="flex items-end">
           <label className="inline-flex items-center">
             <input
@@ -268,7 +289,7 @@ export default function CoursesPage() {
           </label>
         </div>
       </div>
-      
+
       {/* 교육과정 목록 */}
       {filteredCourses.length === 0 ? (
         <div className="text-center py-12">
@@ -290,60 +311,80 @@ export default function CoursesPage() {
             return (
               <Link href={`/courses/${course.slug}`} key={course.id}>
                 <div className="bg-gray-800 rounded-lg overflow-hidden transition-all duration-300 border border-gray-700 hover:border-[#b5b67d] hover:shadow-[0_0_15px_rgba(181,182,125,0.3)] group">
-                  <div className="relative h-48 overflow-hidden">
+                  <div className="relative h-48 overflow-hidden bg-gray-700">
                     {course.thumbnailUrl ? (
-                      <Image
+                      <img
                         src={course.thumbnailUrl}
                         alt={course.title}
-                        fill
-                        loader={cloudinaryLoader}
-                        unoptimized={false}
-                        priority
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+                        style={{
+                          display: "block",
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          position: "relative",
+                          zIndex: 1,
+                        }}
+                        className="transition-transform duration-500 group-hover:scale-110"
+                        loading="lazy"
                         onError={(e) => {
-                          console.error(`이미지 로딩 오류: ${course.thumbnailUrl}`);
-                          // 기본 이미지로 대체
-                          e.currentTarget.src = "/placeholders/course-placeholder.png";
+                          console.error(
+                            `이미지 로딩 오류: ${course.thumbnailUrl}`
+                          );
+                          (e.currentTarget as HTMLImageElement).src =
+                            "/placeholders/course-placeholder.png";
                         }}
                       />
                     ) : (
-                      <Image
+                      <img
                         src="/placeholders/course-placeholder.png"
                         alt={course.title}
-                        fill
-                        unoptimized
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+                        style={{
+                          display: "block",
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          position: "relative",
+                          zIndex: 1,
+                        }}
+                        className="transition-transform duration-500 group-hover:scale-110"
+                        loading="lazy"
                       />
                     )}
-                    <div className="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-0 transition-all duration-300"></div>
                   </div>
                   <div className="p-6">
                     <span className="inline-block px-2 py-1 text-xs font-semibold text-[#8a7e71] bg-[#f5f6e4] rounded-full mb-2">
                       {getCategoryName(course.category)}
                     </span>
-                    <h2 className="text-xl font-bold mb-2 text-white group-hover:text-[#b5b67d] transition-colors">{course.title}</h2>
-                    <p className="text-gray-400 text-sm mb-4 line-clamp-2">{course.description}</p>
-                    
+                    <h2 className="text-xl font-bold mb-2 text-white group-hover:text-[#b5b67d] transition-colors">
+                      {course.title}
+                    </h2>
+                    <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+                      {course.description}
+                    </p>
+
                     {nextSchedule ? (
                       <div className="text-sm text-gray-400 mb-4">
-                        <span className="font-medium text-gray-300">일정:</span> {formatDate(nextSchedule.startDate)} ~ {formatDate(nextSchedule.endDate)}
+                        <span className="font-medium text-gray-300">일정:</span>{" "}
+                        {formatDate(nextSchedule.startDate)} ~{" "}
+                        {formatDate(nextSchedule.endDate)}
                       </div>
                     ) : (
                       course.schedule && (
                         <div className="text-sm text-gray-400 mb-4">
-                          <span className="font-medium text-gray-300">일정:</span> 문의 요망
+                          <span className="font-medium text-gray-300">
+                            일정:
+                          </span>{" "}
+                          문의 요망
                         </div>
                       )
                     )}
-                    
+
                     {course.price !== null && (
                       <div className="text-[#b5b67d] font-bold">
                         {course.price.toLocaleString()}원
                       </div>
                     )}
-                    
+
                     {isPastCourse(course) && (
                       <div className="mt-2 inline-block px-2 py-1 text-xs font-semibold text-white bg-gray-600 rounded">
                         지난 과정
@@ -358,4 +399,4 @@ export default function CoursesPage() {
       )}
     </div>
   );
-} 
+}
