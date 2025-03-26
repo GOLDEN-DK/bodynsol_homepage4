@@ -23,6 +23,7 @@ interface Course {
   instructor: string | null;
   instructorInfo: string | null;
   instructorImageUrl: string | null;
+  instructors: string | null;
 }
 
 // 일정 인터페이스 정의
@@ -40,6 +41,14 @@ interface Teacher {
   name: string;
   bio: string | null;
   profileImage: string | null;
+}
+
+// 다중 강사 인터페이스 정의
+interface CourseInstructor {
+  id: string;
+  name: string;
+  bio: string;
+  profileImage: string;
 }
 
 // 카테고리 인터페이스 정의
@@ -63,6 +72,9 @@ export default function CourseDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedSchedule, setSelectedSchedule] = useState<string | null>(null);
+  const [courseInstructors, setCourseInstructors] = useState<
+    CourseInstructor[]
+  >([]);
 
   // 과정 데이터 가져오기
   useEffect(() => {
@@ -106,7 +118,46 @@ export default function CourseDetail() {
           }
         }
 
-        // 강사 정보 가져오기
+        // 설명에서 강사 정보 추출
+        if (
+          data.description &&
+          data.description.includes("___INSTRUCTORS_JSON___")
+        ) {
+          try {
+            const instructorsJsonPart = data.description.split(
+              "___INSTRUCTORS_JSON___"
+            )[1];
+            if (instructorsJsonPart) {
+              const parsedInstructors = JSON.parse(instructorsJsonPart);
+              if (Array.isArray(parsedInstructors)) {
+                setCourseInstructors(parsedInstructors);
+              }
+
+              // 설명에서 강사 정보 부분 제거 (화면 표시용)
+              const cleanDescription = data.description
+                .split("___INSTRUCTORS_JSON___")[0]
+                .trim();
+              setCourse({
+                ...data,
+                description: cleanDescription,
+              });
+            }
+          } catch (e) {
+            console.error("강사 데이터 파싱 오류:", e);
+          }
+          // 기존 단일 강사 정보가 있으면 변환
+        } else if (data.instructor) {
+          setCourseInstructors([
+            {
+              id: "legacy-instructor",
+              name: data.instructor,
+              bio: data.instructorInfo || "",
+              profileImage: data.instructorImageUrl || "",
+            },
+          ]);
+        }
+
+        // 기존 코드 유지: data.instructor로 API 호출 (호환성 유지)
         if (data.instructor) {
           try {
             const teachersResponse = await fetch(
@@ -292,13 +343,44 @@ export default function CourseDetail() {
           </div>
 
           {/* 강사 정보 */}
-          {(teachers.length > 0 || course.instructorInfo) && (
+          {(courseInstructors.length > 0 ||
+            teachers.length > 0 ||
+            course?.instructorInfo) && (
             <div className="space-y-6 backdrop-blur-sm bg-gray-800/50 p-8 rounded-xl shadow-xl">
               <h2 className="text-2xl font-semibold text-[#b5b67d] border-b border-gray-700 pb-3">
                 강사 소개
               </h2>
 
-              {teachers.length > 0 ? (
+              {courseInstructors.length > 0 ? (
+                <div className="space-y-8">
+                  {courseInstructors.map((instructor) => (
+                    <div
+                      key={instructor.id}
+                      className="flex flex-col md:flex-row gap-6"
+                    >
+                      {instructor.profileImage && (
+                        <div className="w-32 h-32 rounded-full overflow-hidden flex-shrink-0 shadow-lg border-2 border-[#b5b67d]">
+                          <img
+                            src={instructor.profileImage}
+                            alt={instructor.name}
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                      )}
+                      <div>
+                        <h3 className="text-xl font-medium text-white mb-3">
+                          {instructor.name}
+                        </h3>
+                        {instructor.bio && (
+                          <p className="text-gray-200 leading-relaxed whitespace-pre-line">
+                            {instructor.bio}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : teachers.length > 0 ? (
                 <div className="space-y-8">
                   {teachers.map((teacher) => (
                     <div
@@ -329,7 +411,7 @@ export default function CourseDetail() {
                     </div>
                   ))}
                 </div>
-              ) : course.instructorInfo ? (
+              ) : course?.instructorInfo ? (
                 <div className="space-y-6">
                   {course.instructorImageUrl && (
                     <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-[#b5b67d] shadow-lg">

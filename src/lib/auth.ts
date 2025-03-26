@@ -1,17 +1,15 @@
-import { NextAuthOptions } from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import { PrismaAdapter } from '@auth/prisma-adapter';
-import { prisma } from '@/lib/prisma';
-import bcrypt from 'bcrypt';
+import { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcrypt";
+import prisma from "@/lib/prisma";
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
-      name: 'Credentials',
+      name: "Credentials",
       credentials: {
-        email: { label: '이메일', type: 'email' },
-        password: { label: '비밀번호', type: 'password' }
+        email: { label: "이메일", type: "email" },
+        password: { label: "비밀번호", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -20,7 +18,7 @@ export const authOptions: NextAuthOptions = {
 
         try {
           const user = await prisma.user.findUnique({
-            where: { email: credentials.email }
+            where: { email: credentials.email },
           });
 
           if (!user) {
@@ -40,21 +38,29 @@ export const authOptions: NextAuthOptions = {
             id: user.id,
             name: user.name,
             email: user.email,
-            role: user.role
+            role: user.role,
           };
         } catch (error) {
-          console.error('인증 오류:', error);
+          console.error("인증 오류:", error);
           return null;
         }
-      }
-    })
+      },
+    }),
   ],
   session: {
-    strategy: 'jwt'
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30일 (초 단위)
   },
+  jwt: {
+    // 명시적으로 암호화 알고리즘 설정
+    secret: process.env.NEXTAUTH_SECRET,
+  },
+  secret: process.env.NEXTAUTH_SECRET,
   pages: {
-    signIn: '/admin/login'
+    signIn: "/admin/login",
+    error: "/admin/login",
   },
+  debug: process.env.NODE_ENV === "development",
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -68,6 +74,6 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as string;
       }
       return session;
-    }
-  }
-}; 
+    },
+  },
+};

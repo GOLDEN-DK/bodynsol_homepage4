@@ -35,7 +35,7 @@ model Banner {
 }
 
 model Course {
-  id              String   @id @default(cuid())
+  id              String             @id @default(cuid())
   title           String
   description     String
   thumbnailUrl    String
@@ -45,13 +45,13 @@ model Course {
   curriculum      String?
   schedule        String?
   price           Int?
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  slug            String   @unique
+  isActive        Boolean            @default(true)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  slug            String             @unique
   target          String?
-  
   applications    Application[]
+  courseInstructors CourseInstructor[]
 }
 
 model Event {
@@ -127,15 +127,16 @@ model EduCategory {
 }
 
 model Teacher {
-  id             String   @id @default(cuid())
+  id             String             @id @default(cuid())
   name           String
   bio            String?
   experience     String?
   certifications String?
   profileImage   String?
-  isActive       Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  isActive       Boolean            @default(true)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  CourseInstructor CourseInstructor[]
 
   @@map("edu_teacher")
 }
@@ -168,21 +169,41 @@ model category {
   article article[]
 }
 
+// 다대다 관계 테이블: 강좌-강사 연결
+model CourseInstructor {
+  id         String   @id @default(cuid())
+  courseId   String
+  teacherId  String
+  role       String?  // 선택적 필드: 강사 역할 (주강사, 보조강사 등)
+  order      Int      @default(0) // 표시 순서
+  createdAt  DateTime @default(now())
+  
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  teacher    Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  
+  @@unique([courseId, teacherId]) // 한 강좌에 같은 강사가 중복되지 않도록
+  @@index([courseId])
+  @@index([teacherId])
+  
+  @@map("course_instructor")
+}
+
+// 추가: Application 모델 정의
 model Application {
   id                String   @id @default(cuid())
   courseId          String
-  scheduleId        String
+  scheduleId        String?
   koreanName        String
-  englishName       String   @default("")
+  englishName       String?
   email             String
   phone             String
-  gender            String
-  age               String
-  occupation        String
-  region            String
-  pilatesExperience String
-  question          String   @default("")
-  paymentMethod     String
+  gender            String?
+  age               String?
+  occupation        String?
+  region            String?
+  pilatesExperience String?
+  question          String?
+  paymentMethod     String?
   status            String   @default("pending") // pending, confirmed, cancelled, completed
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt

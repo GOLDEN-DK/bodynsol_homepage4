@@ -14,7 +14,11 @@ const RichTextEditor = dynamicImport(
   () => import("@/components/editor/RichTextEditor"),
   {
     ssr: false,
-    loading: () => <div className="h-64 bg-gray-100 rounded-md flex items-center justify-center">에디터 로딩 중...</div>
+    loading: () => (
+      <div className="h-64 bg-gray-100 rounded-md flex items-center justify-center">
+        에디터 로딩 중...
+      </div>
+    ),
   }
 );
 
@@ -34,6 +38,15 @@ interface ScheduleItem {
   teachers: string[];
 }
 
+// 카테고리 인터페이스 정의 추가
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  isActive?: boolean;
+}
+
 // courseData 인터페이스 업데이트
 interface CourseData {
   title: string;
@@ -48,13 +61,16 @@ interface CourseData {
   schedule: string;
   price: number;
   isActive: boolean;
-  instructor: string;
-  instructorInfo: string;
-  instructorImageUrl: string;
-  discountPrice: number;
-  maxStudents: number;
-  duration: string;
+  instructors: Array<{
+    id: string;
+    name: string;
+    bio: string;
+    profileImage: string;
+  }>;
   location: string;
+  duration: string;
+  maxStudents: number;
+  discountPrice: number;
   paymentMethods: string[];
   scheduleItems: ScheduleItem[];
   target: string;
@@ -64,7 +80,7 @@ export default function EditCourse({ params }: { params: { id: string } }) {
   const router = useRouter();
   const { data: session, status } = useSession();
   // 직접적인 params 접근 코드 제거
-  
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,7 +88,10 @@ export default function EditCourse({ params }: { params: { id: string } }) {
   const [mounted, setMounted] = useState(false);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailUploadLoading, setThumbnailUploadLoading] = useState(false);
-  const [thumbnailInputType, setThumbnailInputType] = useState<'url' | 'file'>('url');
+  const [thumbnailInputType, setThumbnailInputType] = useState<"url" | "file">(
+    "url"
+  );
+  const [categories, setCategories] = useState<Category[]>([]);
 
   // 과정 정보 상태
   const [courseData, setCourseData] = useState<CourseData>({
@@ -83,9 +102,7 @@ export default function EditCourse({ params }: { params: { id: string } }) {
     curriculum: "",
     thumbnailUrl: "",
     categoryId: "",
-    instructor: "",
-    instructorInfo: "",
-    instructorImageUrl: "",
+    instructors: [],
     schedule: "",
     duration: "",
     location: "",
@@ -100,67 +117,116 @@ export default function EditCourse({ params }: { params: { id: string } }) {
     target: "",
   });
 
-  // 새 일정 상태 추가
-  const [newSchedule, setNewSchedule] = useState<Omit<ScheduleItem, 'id'>>({
-    startDate: '',
-    endDate: '',
-    location: '',
+  // 새 강사 상태 추가
+  const [newInstructor, setNewInstructor] = useState({
+    name: "",
+    bio: "",
+    profileImage: "",
+  });
+
+  // 강사 목록 상태 추가
+  const [teachers, setTeachers] = useState<
+    Array<{ id: string; name: string; profileImage?: string; bio?: string }>
+  >([]);
+  const [selectedTeacher, setSelectedTeacher] = useState<string>("");
+
+  // 일정 관련 상태 추가
+  const [newSchedule, setNewSchedule] = useState<Omit<ScheduleItem, "id">>({
+    startDate: "",
+    endDate: "",
+    location: "",
     teachers: [],
   });
-  
-  // 강사 목록 상태 추가
-  const [teachers, setTeachers] = useState<Array<{ id: string; name: string }>>([]);
   const [selectedTeachers, setSelectedTeachers] = useState<string[]>([]);
 
   // 세션 체크
   useEffect(() => {
-    if (status === "unauthenticated") {
-      signIn();
-    } else if (session?.user?.role !== "admin") {
-      router.push("/");
-    }
-  }, [session, status, router]);
-
-  // 강좌 정보 가져오기
-  useEffect(() => {
-    const fetchData = async () => {
-      if (status === "authenticated") {
-        const resolvedParams = await Promise.resolve(params);
-        const courseId = resolvedParams.id;
-        fetchCourse(courseId);
+    const checkSession = async () => {
+      try {
+        if (status === "unauthenticated") {
+          router.push("/admin/login");
+        } else if (session && session.user?.role !== "admin") {
+          router.push("/");
+        } else if (
+          status === "authenticated" &&
+          session?.user?.role === "admin"
+        ) {
+          // 인증된 관리자인 경우 데이터 로드
+          const resolvedParams = await Promise.resolve(params);
+          const courseId = resolvedParams.id;
+          fetchCourse(courseId);
+        }
+      } catch (error) {
+        console.error("세션 확인 중 오류:", error);
+        router.push("/admin/login");
       }
     };
-    
-    fetchData();
-  }, [status, params]);
 
+    checkSession();
+  }, [session, status, router, params]);
+
+  // 강좌 정보 가져오기
   const fetchCourse = async (courseId: string) => {
     try {
       setLoading(true);
+      // 로딩 완화를 위한 타임아웃 추가
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       const response = await fetch(`/api/courses/${courseId}`);
-      
+
       if (response.status === 404) {
         setError("강좌를 찾을 수 없습니다.");
         return;
       }
-      
+
       if (!response.ok) {
         throw new Error("강좌 정보를 가져오는데 실패했습니다.");
       }
 
       const data = await response.json();
-      
+
       // 일정 데이터 파싱
       let scheduleItems: ScheduleItem[] = [];
       if (data.schedule) {
         try {
           scheduleItems = JSON.parse(data.schedule);
         } catch (e) {
-          console.error('일정 데이터 파싱 오류:', e);
+          console.error("일정 데이터 파싱 오류:", e);
         }
       }
-      
-      // 데이터 처리 - category를 categoryId로 변환
+
+      // 강사 데이터 파싱 (기존 데이터와 호환성 유지)
+      let instructors = [];
+      if (data.instructors) {
+        try {
+          instructors = JSON.parse(data.instructors);
+        } catch (e) {
+          // 기존 단일 강사 정보가 있으면 배열로 변환
+          if (data.instructor) {
+            instructors = [
+              {
+                id: crypto.randomUUID(),
+                name: data.instructor,
+                bio: data.instructorInfo || "",
+                profileImage: data.instructorImageUrl || "",
+              },
+            ];
+          }
+          console.error("강사 데이터 파싱 오류:", e);
+        }
+      } else if (data.instructor) {
+        // 기존 단일 강사 정보가 있으면 배열로 변환
+        instructors = [
+          {
+            id: crypto.randomUUID(),
+            name: data.instructor,
+            bio: data.instructorInfo || "",
+            profileImage: data.instructorImageUrl || "",
+          },
+        ];
+      }
+
+      // 데이터 처리
       const processedData = {
         title: data.title || "",
         slug: data.slug || "",
@@ -173,22 +239,22 @@ export default function EditCourse({ params }: { params: { id: string } }) {
         curriculum: data.curriculum || "",
         schedule: data.schedule || "",
         price: data.price || 0,
-        isActive: typeof data.isActive === 'boolean' ? data.isActive : true,
-        instructor: data.instructor || "",
-        instructorInfo: data.instructorInfo || "",
-        instructorImageUrl: data.instructorImageUrl || "",
-        discountPrice: data.discountPrice || 0,
-        maxStudents: data.maxStudents || 0,
+        isActive: typeof data.isActive === "boolean" ? data.isActive : true,
+        instructors: instructors,
         duration: data.duration || "",
         location: data.location || "",
+        maxStudents: data.maxStudents || 0,
+        discountPrice: data.discountPrice || 0,
         paymentMethods: data.paymentMethods || [],
         scheduleItems: scheduleItems,
         target: data.target || "",
       };
-      
+
       setCourseData(processedData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다.");
+      setError(
+        err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다."
+      );
     } finally {
       setLoading(false);
     }
@@ -197,11 +263,26 @@ export default function EditCourse({ params }: { params: { id: string } }) {
   // 강사 목록을 가져오는 함수 추가
   const fetchTeachers = async () => {
     try {
-      const response = await fetch('/api/teachers');
+      const response = await fetch("/api/teachers");
       const data = await response.json();
       setTeachers(data);
     } catch (error) {
-      console.error('Error fetching teachers:', error);
+      console.error("Error fetching teachers:", error);
+    }
+  };
+
+  // 카테고리 목록을 가져오는 함수 추가
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch("/api/categories");
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(data);
+      } else {
+        console.error("카테고리 목록을 불러오는데 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("카테고리 가져오기 오류:", error);
     }
   };
 
@@ -212,12 +293,16 @@ export default function EditCourse({ params }: { params: { id: string } }) {
     >
   ) => {
     const { name, value, type } = e.target;
-    
-    if (name === 'price' || name === 'discountPrice' || name === 'maxStudents') {
+
+    if (
+      name === "price" ||
+      name === "discountPrice" ||
+      name === "maxStudents"
+    ) {
       // 숫자 필드는 숫자로 변환
       setCourseData({
         ...courseData,
-        [name]: value === '' ? 0 : Number(value),
+        [name]: value === "" ? 0 : Number(value),
       });
     } else {
       // 문자열 필드는 그대로 사용
@@ -261,7 +346,9 @@ export default function EditCourse({ params }: { params: { id: string } }) {
   };
 
   // 썸네일 파일 업로드 핸들러
-  const handleThumbnailFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleThumbnailFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
       setThumbnailFile(file);
@@ -271,73 +358,242 @@ export default function EditCourse({ params }: { params: { id: string } }) {
   // 썸네일 업로드
   const uploadThumbnail = async (): Promise<string | null> => {
     if (!thumbnailFile) return null;
-    
+
     try {
       setThumbnailUploadLoading(true);
-      
+
       // FormData 생성
       const formData = new FormData();
-      formData.append('file', thumbnailFile);
-      
-      console.log('업로드 시도:', thumbnailFile.name, thumbnailFile.type, thumbnailFile.size);
-      
+      formData.append("file", thumbnailFile);
+
+      console.log(
+        "업로드 시도:",
+        thumbnailFile.name,
+        thumbnailFile.type,
+        thumbnailFile.size
+      );
+
       // 서버에 업로드 요청
-      const response = await fetch('/api/media/upload', {
-        method: 'POST',
+      const response = await fetch("/api/media/upload", {
+        method: "POST",
         body: formData,
       });
-      
+
       // 응답 데이터 확인
       const data = await response.json();
-      
+
       if (!response.ok) {
-        const errorMsg = data.error || '이미지 업로드에 실패했습니다.';
-        console.error('서버 응답 오류:', { status: response.status, message: errorMsg });
+        const errorMsg = data.error || "이미지 업로드에 실패했습니다.";
+        console.error("서버 응답 오류:", {
+          status: response.status,
+          message: errorMsg,
+        });
         throw new Error(errorMsg);
       }
-      
-      console.log('업로드 성공:', data);
+
+      console.log("업로드 성공:", data);
       return data.url; // 업로드된 이미지 URL 반환
     } catch (error) {
-      console.error('썸네일 업로드 오류:', error);
+      console.error("썸네일 업로드 오류:", error);
       if (error instanceof Error) {
         throw error;
       } else {
-        throw new Error('썸네일 업로드 중 알 수 없는 오류가 발생했습니다.');
+        throw new Error("썸네일 업로드 중 알 수 없는 오류가 발생했습니다.");
       }
     } finally {
       setThumbnailUploadLoading(false);
     }
   };
 
+  // 강사 입력 핸들러
+  const handleInstructorChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setNewInstructor((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // 강사 추가 핸들러
+  const handleAddInstructor = () => {
+    if (!selectedTeacher) {
+      alert("강사를 선택해주세요.");
+      return;
+    }
+
+    const teacher = teachers.find((t) => t.id === selectedTeacher);
+    if (!teacher) return;
+
+    const instructor = {
+      id: teacher.id,
+      name: teacher.name,
+      bio: newInstructor.bio || teacher.bio || "",
+      profileImage: newInstructor.profileImage || teacher.profileImage || "",
+    };
+
+    setCourseData((prev) => ({
+      ...prev,
+      instructors: [...prev.instructors, instructor],
+    }));
+
+    // 입력 폼 초기화
+    setNewInstructor({
+      name: "",
+      bio: "",
+      profileImage: "",
+    });
+    setSelectedTeacher("");
+  };
+
+  // 강사 삭제 핸들러
+  const handleDeleteInstructor = (id: string) => {
+    setCourseData((prev) => ({
+      ...prev,
+      instructors: prev.instructors.filter(
+        (instructor) => instructor.id !== id
+      ),
+    }));
+  };
+
+  // 강사 선택 핸들러 추가
+  const handleTeacherSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const teacherId = e.target.value;
+    setSelectedTeacher(teacherId);
+
+    if (teacherId) {
+      // 선택된 강사의 정보 불러오기
+      const selectedTeacher = teachers.find((t) => t.id === teacherId);
+      if (selectedTeacher) {
+        // 강사 정보로 newInstructor 업데이트
+        setNewInstructor({
+          name: selectedTeacher.name,
+          bio: selectedTeacher.bio || "",
+          profileImage: selectedTeacher.profileImage || "",
+        });
+      }
+    } else {
+      // 선택 취소 시 초기화
+      setNewInstructor({
+        name: "",
+        bio: "",
+        profileImage: "",
+      });
+    }
+  };
+
+  // 일정 입력 핸들러 추가
+  const handleScheduleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setNewSchedule((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // 강사 선택 핸들러 추가
+  const handleTeacherSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = Array.from(
+      e.target.selectedOptions,
+      (option) => option.value
+    );
+    setSelectedTeachers(selectedOptions);
+    setNewSchedule((prev) => ({ ...prev, teachers: selectedOptions }));
+  };
+
+  // 스케줄 추가 함수
+  const handleAddSchedule = () => {
+    // 최소한 하나의 정보(시작 날짜, 종료 날짜, 위치)가 있는지 확인
+    if (
+      !newSchedule.startDate &&
+      !newSchedule.endDate &&
+      !newSchedule.location
+    ) {
+      alert("최소한 시작 날짜, 종료 날짜, 또는 위치 중 하나는 입력해주세요.");
+      return;
+    }
+
+    // 시작 날짜와 종료 날짜가 모두 있는 경우 유효성 검사
+    if (newSchedule.startDate && newSchedule.endDate) {
+      const start = new Date(newSchedule.startDate);
+      const end = new Date(newSchedule.endDate);
+
+      if (start > end) {
+        alert("종료 날짜는 시작 날짜 이후여야 합니다.");
+        return;
+      }
+    }
+
+    // 새 스케줄 추가 (ID 생성)
+    const newScheduleItem: ScheduleItem = {
+      ...newSchedule,
+      id: crypto.randomUUID(), // 고유 ID 생성
+    };
+
+    setCourseData((prev) => ({
+      ...prev,
+      scheduleItems: [...prev.scheduleItems, newScheduleItem],
+    }));
+
+    // 입력 필드 초기화
+    setNewSchedule({
+      startDate: "",
+      endDate: "",
+      location: "",
+      teachers: [],
+    });
+    setSelectedTeachers([]);
+  };
+
+  // 일정 삭제 핸들러
+  const handleDeleteSchedule = (scheduleId: string) => {
+    if (!confirm("정말로 이 일정을 삭제하시겠습니까?")) {
+      return;
+    }
+
+    // 일정 목록 업데이트
+    setCourseData((prev) => ({
+      ...prev,
+      scheduleItems: prev.scheduleItems.filter(
+        (item) => item.id !== scheduleId
+      ),
+    }));
+  };
+
   // 폼 제출 핸들러
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
-    setError(null);
+    setError("");
 
     try {
+      // 필수 필드 검증
+      if (!courseData.title || !courseData.description) {
+        setError("제목과 설명은 필수 입력 항목입니다.");
+        return;
+      }
+
       // 썸네일 URL 처리
       let thumbnailUrl = courseData.thumbnailUrl;
-      
+
       // 파일 업로드 방식을 선택한 경우
-      if (thumbnailInputType === 'file' && thumbnailFile) {
+      if (thumbnailInputType === "file" && thumbnailFile) {
         try {
           const uploadedUrl = await uploadThumbnail();
           if (uploadedUrl) {
             thumbnailUrl = uploadedUrl;
           } else {
-            console.warn('썸네일 업로드 실패, URL이 반환되지 않음');
+            console.warn("썸네일 업로드 실패, URL이 반환되지 않음");
           }
         } catch (uploadError) {
-          console.error('썸네일 업로드 처리 오류:', uploadError);
+          console.error("썸네일 업로드 처리 오류:", uploadError);
           throw uploadError;
         }
       }
-      
-      const courseId = await Promise.resolve(params).then(p => p.id);
-      
-      // 일정 데이터를 JSON 문자열로 변환
+
+      const courseId = await Promise.resolve(params).then((p) => p.id);
+
+      // 일정 데이터와 강사 정보를 JSON 문자열로 변환
       const formData = {
         title: courseData.title,
         slug: courseData.slug,
@@ -347,20 +603,21 @@ export default function EditCourse({ params }: { params: { id: string } }) {
         thumbnailHeight: courseData.thumbnailHeight || 600,
         category: courseData.categoryId, // categoryId를 category로 전송
         curriculum: courseData.content, // content를 curriculum으로 전송
-        schedule: courseData.scheduleItems.length > 0 ? JSON.stringify(courseData.scheduleItems) : null,
+        schedule:
+          courseData.scheduleItems.length > 0
+            ? JSON.stringify(courseData.scheduleItems)
+            : null,
+        instructors: JSON.stringify(courseData.instructors),
         price: Number(courseData.price),
         discountPrice: Number(courseData.discountPrice),
         maxStudents: Number(courseData.maxStudents),
         location: courseData.location,
         duration: courseData.duration,
-        instructor: courseData.instructor,
-        instructorInfo: courseData.instructorInfo,
-        instructorImageUrl: courseData.instructorImageUrl,
         paymentMethods: courseData.paymentMethods,
         isActive: courseData.isActive,
         target: courseData.target,
       };
-      
+
       const response = await fetch(`/api/courses/${courseId}`, {
         method: "PATCH",
         headers: {
@@ -370,14 +627,24 @@ export default function EditCourse({ params }: { params: { id: string } }) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "강좌 정보 업데이트에 실패했습니다.");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.error ||
+            errorData.message ||
+            "강좌 업데이트에 실패했습니다."
+        );
       }
 
-      // 성공하면 목록 페이지로 이동
+      // 성공 처리
+      alert("강좌가 성공적으로 업데이트되었습니다.");
       router.push("/admin/courses");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다.");
+    } catch (error) {
+      console.error("강좌 업데이트 오류:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "알 수 없는 오류가 발생했습니다."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -386,18 +653,22 @@ export default function EditCourse({ params }: { params: { id: string } }) {
   // 컴포넌트가 마운트되었는지 확인
   useEffect(() => {
     setMounted(true);
-    
+
     // 과정 ID를 가져와서 fetchCourse 함수 호출
     const getCourseData = async () => {
-      const courseId = await Promise.resolve(params).then(p => p.id);
+      const courseId = await Promise.resolve(params).then((p) => p.id);
       if (courseId) {
         fetchCourse(courseId);
       }
     };
-    
+
     getCourseData();
     fetchTeachers(); // 강사 목록 가져오기
-    console.log("Component mounted, RichTextEditor imported:", !!RichTextEditor);
+    fetchCategories(); // 카테고리 목록 가져오기
+    console.log(
+      "Component mounted, RichTextEditor imported:",
+      !!RichTextEditor
+    );
   }, []);
 
   // 슬러그 자동 생성
@@ -412,90 +683,6 @@ export default function EditCourse({ params }: { params: { id: string } }) {
         ...courseData,
         slug,
       });
-    }
-  };
-
-  // 새 일정 입력 핸들러 추가
-  const handleScheduleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setNewSchedule(prev => ({ ...prev, [name]: value }));
-  };
-
-  // 강사 선택 핸들러 추가
-  const handleTeacherSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
-    setSelectedTeachers(selectedOptions);
-    setNewSchedule(prev => ({ ...prev, teachers: selectedOptions }));
-  };
-
-  // 일정 추가 핸들러
-  const handleAddSchedule = async () => {
-    try {
-      // 필수 필드 검증
-      if (!newSchedule.startDate || !newSchedule.endDate || !newSchedule.location) {
-        alert('시작일, 종료일, 장소는 필수 항목입니다.');
-        return;
-      }
-
-      // API 호출하여 일정 추가
-      const response = await fetch(`/api/courses/${params.id}/schedules`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newSchedule),
-      });
-
-      if (!response.ok) {
-        throw new Error('일정 추가에 실패했습니다.');
-      }
-
-      const addedSchedule = await response.json();
-
-      // 일정 목록 업데이트
-      setCourseData(prev => ({
-        ...prev,
-        scheduleItems: [...prev.scheduleItems, addedSchedule],
-      }));
-
-      // 새 일정 폼 초기화
-      setNewSchedule({
-        startDate: '',
-        endDate: '',
-        location: '',
-        teachers: [],
-      });
-      setSelectedTeachers([]);
-    } catch (error) {
-      console.error('Error adding schedule:', error);
-      alert('일정 추가에 실패했습니다.');
-    }
-  };
-
-  // 일정 삭제 핸들러
-  const handleDeleteSchedule = async (scheduleId: string) => {
-    if (!confirm('정말로 이 일정을 삭제하시겠습니까?')) {
-      return;
-    }
-
-    try {
-      // API 호출하여 일정 삭제
-      const response = await fetch(`/api/courses/${params.id}/schedules/${scheduleId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('일정 삭제에 실패했습니다.');
-      }
-
-      // 일정 목록 업데이트
-      setCourseData(prev => ({
-        ...prev,
-        scheduleItems: prev.scheduleItems.filter(item => item.id !== scheduleId),
-      }));
-    } catch (error) {
-      console.error('Error deleting schedule:', error);
-      alert('일정 삭제에 실패했습니다.');
     }
   };
 
@@ -533,7 +720,8 @@ export default function EditCourse({ params }: { params: { id: string } }) {
         {success && (
           <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
             <p>
-              과정이 성공적으로 수정되었습니다. 잠시 후 목록 페이지로 이동합니다.
+              과정이 성공적으로 수정되었습니다. 잠시 후 목록 페이지로
+              이동합니다.
             </p>
           </div>
         )}
@@ -611,7 +799,7 @@ export default function EditCourse({ params }: { params: { id: string } }) {
               >
                 썸네일 이미지 <span className="text-red-500">*</span>
               </label>
-              
+
               <div className="mb-2">
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center">
@@ -620,11 +808,14 @@ export default function EditCourse({ params }: { params: { id: string } }) {
                       id="url-input"
                       name="thumbnailInputType"
                       value="url"
-                      checked={thumbnailInputType === 'url'}
-                      onChange={() => setThumbnailInputType('url')}
+                      checked={thumbnailInputType === "url"}
+                      onChange={() => setThumbnailInputType("url")}
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                     />
-                    <label htmlFor="url-input" className="ml-2 block text-sm text-gray-700">
+                    <label
+                      htmlFor="url-input"
+                      className="ml-2 block text-sm text-gray-700"
+                    >
                       URL 입력
                     </label>
                   </div>
@@ -634,18 +825,21 @@ export default function EditCourse({ params }: { params: { id: string } }) {
                       id="file-input"
                       name="thumbnailInputType"
                       value="file"
-                      checked={thumbnailInputType === 'file'}
-                      onChange={() => setThumbnailInputType('file')}
+                      checked={thumbnailInputType === "file"}
+                      onChange={() => setThumbnailInputType("file")}
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                     />
-                    <label htmlFor="file-input" className="ml-2 block text-sm text-gray-700">
+                    <label
+                      htmlFor="file-input"
+                      className="ml-2 block text-sm text-gray-700"
+                    >
                       파일 업로드
                     </label>
                   </div>
                 </div>
               </div>
-              
-              {thumbnailInputType === 'url' ? (
+
+              {thumbnailInputType === "url" ? (
                 <input
                   type="text"
                   id="thumbnailUrl"
@@ -654,7 +848,7 @@ export default function EditCourse({ params }: { params: { id: string } }) {
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   placeholder="이미지 URL을 입력하세요"
-                  required={thumbnailInputType === 'url'}
+                  required={thumbnailInputType === "url"}
                 />
               ) : (
                 <div>
@@ -673,7 +867,7 @@ export default function EditCourse({ params }: { params: { id: string } }) {
                   )}
                   {!thumbnailFile && courseData.thumbnailUrl && (
                     <p className="mt-1 text-sm text-gray-600">
-                      현재 이미지: {courseData.thumbnailUrl.split('/').pop()}
+                      현재 이미지: {courseData.thumbnailUrl.split("/").pop()}
                     </p>
                   )}
                 </div>
@@ -698,7 +892,12 @@ export default function EditCourse({ params }: { params: { id: string } }) {
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 required
               >
-                {/* Add category options here */}
+                <option value="">카테고리 선택</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -719,7 +918,8 @@ export default function EditCourse({ params }: { params: { id: string } }) {
                 placeholder="교육 대상을 입력하세요"
               />
               <p className="mt-1 text-sm text-gray-500">
-                이 과정의 대상 수강생을 간략히 설명해주세요. (예: 초급자, 영양사, 관리자 등)
+                이 과정의 대상 수강생을 간략히 설명해주세요. (예: 초급자,
+                영양사, 관리자 등)
               </p>
             </div>
           </div>
@@ -730,81 +930,298 @@ export default function EditCourse({ params }: { params: { id: string } }) {
               강사 정보
             </h2>
 
-            <div>
-              <label
-                htmlFor="instructor"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                강사 이름 <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                id="instructor"
-                name="instructor"
-                value={courseData.instructor}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                required
-              />
+            {/* 현재 등록된 강사 목록 */}
+            {courseData.instructors.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-lg font-medium mb-2">등록된 강사</h3>
+                <div className="grid grid-cols-1 gap-4">
+                  {courseData.instructors.map((instructor) => (
+                    <div
+                      key={instructor.id}
+                      className="border border-gray-200 rounded-md p-4 bg-gray-50"
+                    >
+                      <div className="flex justify-between">
+                        <h4 className="font-medium text-gray-900">
+                          {instructor.name}
+                        </h4>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteInstructor(instructor.id)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                      {instructor.profileImage && (
+                        <div className="mt-2">
+                          <p className="text-sm text-gray-700">
+                            프로필 이미지:
+                          </p>
+                          <p className="text-sm text-gray-500 truncate">
+                            {instructor.profileImage}
+                          </p>
+                        </div>
+                      )}
+                      {instructor.bio && (
+                        <div className="mt-2">
+                          <p className="text-sm text-gray-700">소개:</p>
+                          <p className="text-sm text-gray-500">
+                            {instructor.bio}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 새 강사 추가 폼 */}
+            <div className="bg-gray-50 p-4 rounded-md">
+              <h3 className="text-lg font-medium mb-4">새 강사 추가</h3>
+
+              <div className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="teacher-select"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    강사 선택 <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="teacher-select"
+                    value={selectedTeacher}
+                    onChange={handleTeacherSelect}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                    required
+                  >
+                    <option value="">강사를 선택하세요</option>
+                    {teachers.map((teacher) => (
+                      <option key={teacher.id} value={teacher.id}>
+                        {teacher.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="instructor-bio"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    강사 소개 (선택)
+                  </label>
+                  <textarea
+                    id="instructor-bio"
+                    name="bio"
+                    value={newInstructor.bio}
+                    onChange={handleInstructorChange}
+                    rows={3}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                    placeholder="기본 정보가 있으면 자동으로 불러옵니다. 추가 정보가 있을 경우 입력하세요."
+                  ></textarea>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="instructor-profileImage"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    프로필 이미지 URL (선택)
+                  </label>
+                  <input
+                    type="text"
+                    id="instructor-profileImage"
+                    name="profileImage"
+                    value={newInstructor.profileImage}
+                    onChange={handleInstructorChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                    placeholder="기본 이미지가 있으면 자동으로 불러옵니다. 변경하려면 새 URL을 입력하세요."
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleAddInstructor}
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  강사 추가
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* 일정 관리 섹션 추가 */}
+          <div className="bg-white rounded-md shadow-sm p-4 mb-6">
+            <h2 className="text-xl font-medium mb-4">일정 관리</h2>
+
+            {/* 일정 목록 */}
+            <div className="mb-6">
+              <h3 className="text-lg font-medium mb-2">일정 목록</h3>
+
+              {courseData.scheduleItems.length === 0 ? (
+                <p className="text-gray-900">등록된 일정이 없습니다.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full bg-white border border-gray-200">
+                    <thead>
+                      <tr>
+                        <th className="py-2 px-4 border-b text-gray-900">
+                          시작일
+                        </th>
+                        <th className="py-2 px-4 border-b text-gray-900">
+                          종료일
+                        </th>
+                        <th className="py-2 px-4 border-b text-gray-900">
+                          장소
+                        </th>
+                        <th className="py-2 px-4 border-b text-gray-900">
+                          강사
+                        </th>
+                        <th className="py-2 px-4 border-b text-gray-900">
+                          관리
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {courseData.scheduleItems.map((schedule) => {
+                        // 날짜 포맷팅 함수
+                        const formatDate = (dateString: string) => {
+                          const date = new Date(dateString);
+                          return date.toLocaleDateString("ko-KR", {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                          });
+                        };
+
+                        // 강사 이름 가져오기
+                        const getTeacherNames = (teacherIds: string[]) => {
+                          return teacherIds
+                            .map((id) => {
+                              const teacher = teachers.find((t) => t.id === id);
+                              return teacher ? teacher.name : "";
+                            })
+                            .filter(Boolean)
+                            .join(", ");
+                        };
+
+                        return (
+                          <tr key={schedule.id} className="hover:bg-gray-50">
+                            <td className="py-2 px-4 border-b text-gray-900">
+                              {formatDate(schedule.startDate)}
+                            </td>
+                            <td className="py-2 px-4 border-b text-gray-900">
+                              {formatDate(schedule.endDate)}
+                            </td>
+                            <td className="py-2 px-4 border-b text-gray-900">
+                              {schedule.location}
+                            </td>
+                            <td className="py-2 px-4 border-b text-gray-900">
+                              {getTeacherNames(schedule.teachers)}
+                            </td>
+                            <td className="py-2 px-4 border-b text-gray-900">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleDeleteSchedule(schedule.id)
+                                }
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                삭제
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
 
-            <div>
-              <label
-                htmlFor="instructorInfo"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                강사 소개
-              </label>
-              <textarea
-                id="instructorInfo"
-                name="instructorInfo"
-                value={courseData.instructorInfo || ""}
-                onChange={handleInputChange}
-                rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-              ></textarea>
-            </div>
+            {/* 일정 추가 폼 */}
+            <div className="bg-gray-50 p-4 rounded-md">
+              <h3 className="text-lg font-medium mb-4">새 일정 추가</h3>
 
-            <div>
-              <label
-                htmlFor="instructorImageUrl"
-                className="block text-sm font-medium text-gray-700 mb-1"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-gray-900">
+                    시작일
+                  </label>
+                  <input
+                    type="date"
+                    name="startDate"
+                    value={newSchedule.startDate}
+                    onChange={handleScheduleInputChange}
+                    className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-blue-500 text-gray-900"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-gray-900">
+                    종료일
+                  </label>
+                  <input
+                    type="date"
+                    name="endDate"
+                    value={newSchedule.endDate}
+                    onChange={handleScheduleInputChange}
+                    className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-blue-500 text-gray-900"
+                  />
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1 text-gray-900">
+                  장소
+                </label>
+                <input
+                  type="text"
+                  name="location"
+                  value={newSchedule.location}
+                  onChange={handleScheduleInputChange}
+                  className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-blue-500 text-gray-900"
+                  placeholder="장소를 입력하세요"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1 text-gray-900">
+                  강사 선택
+                </label>
+                <select
+                  multiple
+                  onChange={handleTeacherSelection}
+                  value={selectedTeachers}
+                  className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-blue-500 text-gray-900 h-32"
+                >
+                  {teachers.map((teacher) => (
+                    <option key={teacher.id} value={teacher.id}>
+                      {teacher.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-700 mt-1">
+                  * Ctrl 키를 누른 상태에서 여러 강사를 선택할 수 있습니다.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleAddSchedule}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                강사 이미지 URL
-              </label>
-              <input
-                type="text"
-                id="instructorImageUrl"
-                name="instructorImageUrl"
-                value={courseData.instructorImageUrl || ""}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-              />
+                일정 추가
+              </button>
             </div>
           </div>
 
           {/* 일정 및 장소 */}
           <div className="space-y-4 md:col-span-2">
             <h2 className="text-xl font-semibold text-gray-800 border-b pb-2">
-              일정 및 장소
+              장소 및 기간 정보
             </h2>
-
-            <div>
-              <label
-                htmlFor="schedule"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                일정 정보
-              </label>
-              <input
-                type="text"
-                id="schedule"
-                name="schedule"
-                value={courseData.schedule || ""}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-              />
-            </div>
 
             <div>
               <label
@@ -820,6 +1237,7 @@ export default function EditCourse({ params }: { params: { id: string } }) {
                 value={courseData.duration || ""}
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                placeholder="예: 30시간 (10회)"
               />
             </div>
 
@@ -837,6 +1255,7 @@ export default function EditCourse({ params }: { params: { id: string } }) {
                 value={courseData.location || ""}
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                placeholder="기본 교육 장소를 입력하세요"
               />
             </div>
 
@@ -944,7 +1363,9 @@ export default function EditCourse({ params }: { params: { id: string } }) {
                   placeholder="과정에 대한 상세 내용을 입력하세요..."
                 />
               ) : (
-                <div className="h-64 bg-gray-100 rounded-md flex items-center justify-center">클라이언트 측 렌더링 대기 중...</div>
+                <div className="h-64 bg-gray-100 rounded-md flex items-center justify-center">
+                  클라이언트 측 렌더링 대기 중...
+                </div>
               )}
             </div>
           </div>
@@ -967,145 +1388,6 @@ export default function EditCourse({ params }: { params: { id: string } }) {
                 과정 활성화 (체크 해제 시 비공개)
               </label>
             </div>
-          </div>
-        </div>
-
-        {/* 일정 관리 섹션 추가 */}
-        <div className="bg-white rounded-md shadow-sm p-4 mb-6">
-          <h2 className="text-xl font-medium mb-4">일정 관리</h2>
-          
-          {/* 일정 목록 */}
-          <div className="mb-6">
-            <h3 className="text-lg font-medium mb-2">일정 목록</h3>
-            
-            {courseData.scheduleItems.length === 0 ? (
-              <p className="text-gray-900">등록된 일정이 없습니다.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full bg-white border border-gray-200">
-                  <thead>
-                    <tr>
-                      <th className="py-2 px-4 border-b text-gray-900">시작일</th>
-                      <th className="py-2 px-4 border-b text-gray-900">종료일</th>
-                      <th className="py-2 px-4 border-b text-gray-900">장소</th>
-                      <th className="py-2 px-4 border-b text-gray-900">강사</th>
-                      <th className="py-2 px-4 border-b text-gray-900">관리</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {courseData.scheduleItems.map((schedule) => {
-                      // 날짜 포맷팅 함수
-                      const formatDate = (dateString: string) => {
-                        const date = new Date(dateString);
-                        return date.toLocaleDateString('ko-KR', {
-                          year: 'numeric',
-                          month: '2-digit',
-                          day: '2-digit',
-                        });
-                      };
-
-                      // 강사 이름 가져오기
-                      const getTeacherNames = (teacherIds: string[]) => {
-                        return teacherIds
-                          .map(id => {
-                            const teacher = teachers.find(t => t.id === id);
-                            return teacher ? teacher.name : '';
-                          })
-                          .filter(Boolean)
-                          .join(', ');
-                      };
-
-                      return (
-                        <tr key={schedule.id} className="hover:bg-gray-50">
-                          <td className="py-2 px-4 border-b text-gray-900">{formatDate(schedule.startDate)}</td>
-                          <td className="py-2 px-4 border-b text-gray-900">{formatDate(schedule.endDate)}</td>
-                          <td className="py-2 px-4 border-b text-gray-900">{schedule.location}</td>
-                          <td className="py-2 px-4 border-b text-gray-900">{getTeacherNames(schedule.teachers)}</td>
-                          <td className="py-2 px-4 border-b text-gray-900">
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteSchedule(schedule.id)}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              삭제
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-          
-          {/* 일정 추가 폼 */}
-          <div className="bg-gray-50 p-4 rounded-md">
-            <h3 className="text-lg font-medium mb-4">새 일정 추가</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium mb-1 text-gray-900">시작일 *</label>
-                <input
-                  type="date"
-                  name="startDate"
-                  value={newSchedule.startDate}
-                  onChange={handleScheduleInputChange}
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-900"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1 text-gray-900">종료일 *</label>
-                <input
-                  type="date"
-                  name="endDate"
-                  value={newSchedule.endDate}
-                  onChange={handleScheduleInputChange}
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-900"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1 text-gray-900">장소 *</label>
-              <input
-                type="text"
-                name="location"
-                value={newSchedule.location}
-                onChange={handleScheduleInputChange}
-                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-900"
-                placeholder="장소를 입력하세요"
-                required
-              />
-            </div>
-            
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1 text-gray-900">강사 선택</label>
-              <select
-                multiple
-                onChange={handleTeacherSelection}
-                value={selectedTeachers}
-                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-900 h-32"
-              >
-                {teachers.map((teacher) => (
-                  <option key={teacher.id} value={teacher.id}>
-                    {teacher.name}
-                  </option>
-                ))}
-              </select>
-              <p className="text-xs text-gray-700 mt-1">* Ctrl 키를 누른 상태에서 여러 강사를 선택할 수 있습니다.</p>
-            </div>
-            
-            <button
-              type="button"
-              onClick={handleAddSchedule}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              일정 추가
-            </button>
           </div>
         </div>
 
