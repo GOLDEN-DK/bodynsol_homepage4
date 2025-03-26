@@ -38,8 +38,19 @@ export async function GET(
     const paramValues = await params;
     const id = paramValues.id;
 
-    const course = await prisma.course.findUnique({
+    // 강좌 정보와 함께 인스트럭터 관계 정보도 가져오기 (any 타입 사용)
+    const course = await (prisma as any).course.findUnique({
       where: { id },
+      include: {
+        courseInstructors: {
+          include: {
+            teacher: true,
+          },
+          orderBy: {
+            order: "asc",
+          },
+        },
+      },
     });
 
     if (!course) {
@@ -80,9 +91,16 @@ export async function PATCH(
 
     console.log("받은 데이터:", data);
 
-    // 강좌가 존재하는지 확인
-    const existingCourse = await prisma.course.findUnique({
+    // 강좌가 존재하는지 확인 (any 타입 사용)
+    const existingCourse = await (prisma as any).course.findUnique({
       where: { id },
+      include: {
+        courseInstructors: {
+          include: {
+            teacher: true,
+          },
+        },
+      },
     });
 
     if (!existingCourse) {
@@ -92,57 +110,92 @@ export async function PATCH(
       );
     }
 
-    // 인스트럭터 데이터 처리 - schedule 필드 내에 저장 (임시 해결책)
-    let instructorsData = null;
-    if (data.instructors) {
-      instructorsData =
-        typeof data.instructors === "string"
-          ? data.instructors
-          : JSON.stringify(data.instructors);
-    }
+    // 트랜잭션으로 과정 및 강사 관계 업데이트 (any 타입 사용)
+    const result = await (prisma as any).$transaction(async (tx: any) => {
+      // 1. 기본 과정 정보 업데이트
+      const updateData = {
+        title: data.title,
+        description: data.description,
+        thumbnailUrl: data.thumbnailUrl,
+        thumbnailWidth: data.thumbnailWidth,
+        thumbnailHeight: data.thumbnailHeight,
+        category: data.category || data.categoryId,
+        curriculum: data.curriculum || data.content,
+        schedule: data.schedule,
+        price: data.price !== undefined ? data.price : undefined,
+        isActive: data.isActive !== undefined ? data.isActive : undefined,
+        slug: data.slug,
+        target: data.target,
+      };
 
-    // 기본 필드 업데이트
-    const updateData = {
-      title: data.title,
-      description: data.description,
-      thumbnailUrl: data.thumbnailUrl,
-      thumbnailWidth: data.thumbnailWidth,
-      thumbnailHeight: data.thumbnailHeight,
-      category: data.category || data.categoryId,
-      curriculum: data.curriculum || data.content,
-      schedule: data.schedule,
-      price: data.price !== undefined ? data.price : undefined,
-      isActive: data.isActive !== undefined ? data.isActive : undefined,
-      slug: data.slug,
-      target: data.target,
-    };
+      // undefined 값 제거
+      const filteredData = Object.fromEntries(
+        Object.entries(updateData).filter(([_, v]) => v !== undefined)
+      );
 
-    // undefined 값 제거
-    const filteredData = Object.fromEntries(
-      Object.entries(updateData).filter(([_, v]) => v !== undefined)
-    );
+      // 과정 업데이트
+      const updatedCourse = await tx.course.update({
+        where: { id },
+        data: filteredData,
+      });
 
-    console.log("업데이트 데이터:", filteredData);
+      // 2. 인스트럭터 관계 관리 (CourseInstructor 테이블)
+      if (data.instructors) {
+        let instructors = [];
 
-    // 데이터 업데이트 - 인스트럭터 데이터도 별도로 저장 (임시 방식)
-    if (instructorsData) {
-      try {
-        // 별도의 코드로 인스트럭터 정보 저장 (예: 데이터베이스 직접 쿼리)
-        console.log("인스트럭터 데이터 (추후 처리 예정):", instructorsData);
+        try {
+          // 인스트럭터 데이터 파싱
+          instructors =
+            typeof data.instructors === "string"
+              ? JSON.parse(data.instructors)
+              : data.instructors;
+        } catch (e) {
+          console.error("인스트럭터 데이터 파싱 오류:", e);
+          instructors = [];
+        }
 
-        // 여기서 나중에 course_instructor 테이블을 직접 사용하는 코드로 변경 예정
-      } catch (error) {
-        console.error("인스트럭터 정보 저장 오류:", error);
+        if (Array.isArray(instructors)) {
+          // 기존 인스트럭터 관계 삭제
+          await tx.courseInstructor.deleteMany({
+            where: { courseId: id },
+          });
+
+          // 새 인스트럭터 관계 생성
+          if (instructors.length > 0) {
+            for (let i = 0; i < instructors.length; i++) {
+              const instructor = instructors[i];
+              if (instructor && instructor.id) {
+                await tx.courseInstructor.create({
+                  data: {
+                    courseId: id,
+                    teacherId: instructor.id,
+                    role: instructor.role || null,
+                    order: i,
+                  },
+                });
+              }
+            }
+          }
+        }
       }
-    }
 
-    // 데이터 업데이트
-    const updatedCourse = await prisma.course.update({
-      where: { id },
-      data: filteredData,
+      // 업데이트된 과정 정보 반환 (인스트럭터 관계 포함)
+      return tx.course.findUnique({
+        where: { id },
+        include: {
+          courseInstructors: {
+            include: {
+              teacher: true,
+            },
+            orderBy: {
+              order: "asc",
+            },
+          },
+        },
+      });
     });
 
-    return NextResponse.json(updatedCourse);
+    return NextResponse.json(result);
   } catch (error) {
     console.error("강좌 업데이트 오류:", error);
     return NextResponse.json(
