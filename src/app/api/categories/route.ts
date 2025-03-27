@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 // GET - 카테고리 목록 조회
@@ -29,10 +29,7 @@ export async function POST(request: NextRequest) {
     // 세션 확인 (관리자만 접근 가능)
     const session = await getServerSession(authOptions);
     if (!session || session.user?.role !== "admin") {
-      return NextResponse.json(
-        { error: "권한이 없습니다." },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "권한이 없습니다." }, { status: 403 });
     }
 
     const body = await request.json();
@@ -81,4 +78,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}

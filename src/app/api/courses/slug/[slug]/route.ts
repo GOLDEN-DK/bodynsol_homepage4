@@ -7,7 +7,8 @@ export async function GET(
   { params }: { params: { slug: string } }
 ) {
   try {
-    const slug = params.slug;
+    const paramValues = await params;
+    const slug = paramValues.slug;
 
     if (!slug) {
       return NextResponse.json(
@@ -18,8 +19,8 @@ export async function GET(
 
     // slug로 조회(findFirst 사용)
     const course = await prisma.course.findFirst({
-      where: { 
-        slug: slug 
+      where: {
+        slug: slug,
       },
     });
 
@@ -38,4 +39,4 @@ export async function GET(
       { status: 500 }
     );
   }
-} 
+}

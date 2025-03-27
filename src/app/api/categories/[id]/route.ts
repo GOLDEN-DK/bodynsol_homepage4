@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 interface RouteParams {
@@ -19,7 +19,7 @@ export async function GET(
     const id = paramValues.id;
 
     const category = await prisma.eduCategory.findUnique({
-      where: { id }
+      where: { id },
     });
 
     if (!category) {
@@ -47,10 +47,7 @@ export async function PATCH(
   try {
     const session = await getServerSession(authOptions);
     if (!session || session.user?.role !== "admin") {
-      return NextResponse.json(
-        { error: "권한이 없습니다." },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "권한이 없습니다." }, { status: 403 });
     }
 
     const paramValues = await params;
@@ -59,7 +56,7 @@ export async function PATCH(
 
     // 카테고리가 존재하는지 확인
     const existingCategory = await prisma.eduCategory.findUnique({
-      where: { id }
+      where: { id },
     });
 
     if (!existingCategory) {
@@ -71,7 +68,7 @@ export async function PATCH(
 
     const updatedCategory = await prisma.eduCategory.update({
       where: { id },
-      data
+      data,
     });
 
     return NextResponse.json(updatedCategory);
@@ -92,10 +89,7 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions);
     if (!session || session.user?.role !== "admin") {
-      return NextResponse.json(
-        { error: "권한이 없습니다." },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "권한이 없습니다." }, { status: 403 });
     }
 
     const paramValues = await params;
@@ -103,7 +97,7 @@ export async function DELETE(
 
     // 카테고리가 존재하는지 확인
     const existingCategory = await prisma.eduCategory.findUnique({
-      where: { id }
+      where: { id },
     });
 
     if (!existingCategory) {
@@ -114,7 +108,7 @@ export async function DELETE(
     }
 
     await prisma.eduCategory.delete({
-      where: { id }
+      where: { id },
     });
 
     return NextResponse.json({ message: "카테고리가 삭제되었습니다." });
@@ -125,4 +119,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-} 
+}

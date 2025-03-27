@@ -15,6 +15,7 @@ const adminMenuItems = [
   { name: "카테고리 관리", href: "/admin/categories", icon: "file" },
   { name: "강사 관리", href: "/admin/teachers", icon: "users" },
   { name: "과정 관리", href: "/admin/courses", icon: "school" },
+  { name: "신청자 관리", href: "/admin/applications", icon: "file-text" },
   { name: "사용자 관리", href: "/admin/users", icon: "users" },
   { name: "설정", href: "/admin/settings", icon: "settings" },
 ];
