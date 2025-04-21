@@ -380,7 +380,15 @@ const franchiseStores: StoreData = {
       address: "세종시 보람동 567-8",
       phone: "044-678-9012",
       hours: "평일 10:00 - 21:00 / 주말 10:00 - 18:00",
-      images: ["/images/locations/boram.jpg"],
+      images: [
+        "/images/locations/boram1.jpeg",
+        "/images/locations/boram2.jpeg",
+        "/images/locations/boram3.jpeg",
+        "/images/locations/boram4.jpeg",
+        "/images/locations/boram5.jpeg",
+        "/images/locations/boram6.jpeg",
+        "/images/locations/boram7.jpeg",
+      ],
       mapUrl: "https://map.kakao.com",
       features: ["프리미엄 시설", "전문 테라피스트", "주차 가능"],
       sns: {
