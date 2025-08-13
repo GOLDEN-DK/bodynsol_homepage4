@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { sendApplicationEmail } from "@/lib/email";
 
 // 신청 데이터 검증 스키마
 const applicationSchema = z.object({
@@ -66,14 +67,27 @@ export async function POST(request: NextRequest) {
 
     const applicationData = validationResult.data;
 
-    // 코스 존재 여부 확인
+    // 코스와 스케줄 정보 조회
     const course = await prisma.course.findUnique({
       where: { id: applicationData.courseId },
+      include: {
+        schedules: {
+          where: { id: applicationData.scheduleId }
+        }
+      }
     });
 
     if (!course) {
       return NextResponse.json(
         { error: "존재하지 않는 과정입니다." },
+        { status: 404 }
+      );
+    }
+
+    const schedule = course.schedules[0];
+    if (!schedule) {
+      return NextResponse.json(
+        { error: "존재하지 않는 일정입니다." },
         { status: 404 }
       );
     }
@@ -124,6 +138,33 @@ export async function POST(request: NextRequest) {
         price: course.price || null, // 코스 가격 저장
       },
     });
+
+    // 이메일 발송
+    try {
+      const emailData = {
+        courseTitle: course.title,
+        scheduleDate: schedule.date,
+        scheduleTime: schedule.time,
+        koreanName: applicationData.koreanName,
+        englishName: applicationData.englishName,
+        email: applicationData.email,
+        phone: applicationData.phone,
+        gender: applicationData.gender,
+        age: applicationData.age,
+        occupation: applicationData.occupation,
+        region: applicationData.region,
+        pilatesExperience: applicationData.pilatesExperience,
+        question: applicationData.question,
+        paymentMethod: applicationData.paymentMethod,
+        price: course.price
+      };
+
+      await sendApplicationEmail(emailData);
+      console.log("체험 신청 이메일 발송 완료");
+    } catch (emailError) {
+      // 이메일 발송 실패해도 신청은 정상 처리
+      console.error("이메일 발송 실패:", emailError);
+    }
 
     // 실제 DB 저장 후 응답
     return NextResponse.json(
