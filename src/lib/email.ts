@@ -1,18 +1,18 @@
 import nodemailer from "nodemailer";
 
-// 이메일 설정
+// 이메일 설정 - Vercel 환경변수 사용
 const SMTP_CONFIG = {
-  host: 'mail.kmamail.or.kr',
-  port: 25,
-  secure: false,
+  host: process.env.SMTP_HOST || 'mail.kmamail.or.kr',
+  port: parseInt(process.env.SMTP_PORT || '25'),
+  secure: process.env.SMTP_SECURE === 'true',
   auth: {
-    user: 'kmaadmin@kmamail.or.kr',
-    pass: 'kmakoreano1!'
+    user: process.env.SMTP_USER!,
+    pass: process.env.SMTP_PASSWORD!
   }
 };
 
 // 수신자 이메일
-const RECEIVER_EMAIL = 'ourangel72@gmail.com';
+const RECEIVER_EMAIL = process.env.RECEIVER_EMAIL || 'ourangel72@gmail.com';
 
 // 이메일 트랜스포터 생성
 const transporter = nodemailer.createTransport(SMTP_CONFIG);
