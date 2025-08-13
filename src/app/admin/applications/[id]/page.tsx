@@ -28,11 +28,17 @@ interface Application {
   updatedAt: string;
   koreanName: string;
   englishName?: string;
-  age?: number;
+  age?: string;
   gender?: string;
   region?: string;
+  occupation?: string;
+  pilatesExperience?: string;
+  question?: string;
+  paymentMethod?: string;
   price?: number;
   discountedPrice?: number;
+  scheduleDate?: string;
+  scheduleTime?: string;
 }
 
 export default function ApplicationDetail() {
@@ -138,6 +144,29 @@ export default function ApplicationDetail() {
     }
   };
 
+  // 신청 삭제 핸들러
+  const handleDelete = async () => {
+    if (!confirm("정말로 이 신청을 삭제하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/applications/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("신청 삭제에 실패했습니다.");
+      }
+
+      router.push("/admin/applications");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다."
+      );
+    }
+  };
+
   if (status === "loading" || loading) {
     return (
       <div className="p-6">
@@ -173,12 +202,20 @@ export default function ApplicationDetail() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">신청 상세 정보</h1>
-        <button
-          onClick={() => router.push("/admin/applications")}
-          className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-md text-sm font-medium"
-        >
-          목록으로 돌아가기
-        </button>
+        <div className="flex space-x-2">
+          <button
+            onClick={handleDelete}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+          >
+            삭제
+          </button>
+          <button
+            onClick={() => router.push("/admin/applications")}
+            className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-md text-sm font-medium"
+          >
+            목록으로 돌아가기
+          </button>
+        </div>
       </div>
 
       <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -210,19 +247,37 @@ export default function ApplicationDetail() {
             <div>
               <p className="text-sm font-medium text-gray-900 mb-1">나이</p>
               <p className="text-sm text-gray-700">
-                {application.age ? `${application.age}세` : "-"}
+                {application.age || "-"}
               </p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-900 mb-1">성별</p>
               <p className="text-sm text-gray-700">
-                {application.gender || "-"}
+                {application.gender === "male" ? "남성" : application.gender === "female" ? "여성" : "-"}
               </p>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900 mb-1">지역</p>
+              <p className="text-sm font-medium text-gray-900 mb-1">직업/소속</p>
+              <p className="text-sm text-gray-700">
+                {application.occupation || "-"}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900 mb-1">거주지역</p>
               <p className="text-sm text-gray-700">
                 {application.region || "-"}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900 mb-1">필라테스 경험</p>
+              <p className="text-sm text-gray-700">
+                {application.pilatesExperience || "-"}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900 mb-1">결제 방법</p>
+              <p className="text-sm text-gray-700">
+                {application.paymentMethod === "onsite" ? "현장결제" : application.paymentMethod === "card" ? "카드결제" : application.paymentMethod === "transfer" ? "계좌이체" : "-"}
               </p>
             </div>
             <div>
@@ -321,11 +376,11 @@ export default function ApplicationDetail() {
         </div>
 
         <div className="border-t border-gray-200 px-6 py-4 bg-gray-50">
-          <h2 className="text-lg font-semibold text-gray-900">메시지</h2>
+          <h2 className="text-lg font-semibold text-gray-900">문의사항</h2>
         </div>
         <div className="p-6">
           <p className="text-sm text-gray-700 whitespace-pre-wrap">
-            {application.message || "메시지 없음"}
+            {application.question || "문의사항 없음"}
           </p>
         </div>
 

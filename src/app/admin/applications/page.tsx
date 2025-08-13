@@ -136,6 +136,30 @@ export default function AdminApplications() {
     }
   };
 
+  // 신청 삭제 핸들러
+  const handleDelete = async (id: string) => {
+    if (!confirm("정말로 이 신청을 삭제하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/applications/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("신청 삭제에 실패했습니다.");
+      }
+
+      // 목록에서 삭제된 항목 제거
+      setApplications(applications.filter((app) => app.id !== id));
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다."
+      );
+    }
+  };
+
   if (status === "loading" || loading) {
     return (
       <div className="p-6">
@@ -289,6 +313,12 @@ export default function AdminApplications() {
                           className="text-indigo-600 hover:text-indigo-900"
                         >
                           상세보기
+                        </button>
+                        <button
+                          onClick={() => handleDelete(application.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          삭제
                         </button>
                       </div>
                     </td>
